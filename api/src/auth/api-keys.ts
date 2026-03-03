@@ -32,6 +32,7 @@ export interface AccountRecord {
   password_hash?: string;
   auth_provider?: 'email' | 'microsoft';
   plan: CrawlPlan;
+  role?: 'platform_admin' | 'user';
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
   email_verified: boolean;

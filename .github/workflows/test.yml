@@ -24,5 +24,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Typecheck API
-        run: pnpm --filter @theonecrawl/api typecheck
+      - name: Build SDKs (needed for CLI/MCP typecheck)
+        run: pnpm --filter @theonecrawl/js build
+
+      - name: Typecheck all packages
+        run: pnpm typecheck
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm build

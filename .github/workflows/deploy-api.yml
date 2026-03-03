@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  REGISTRY: jpgportalacr.azurecr.io
+  REGISTRY: theonecrawlacr.azurecr.io
   IMAGE_NAME: theonecrawl-api
   CONTAINER_APP: theonecrawl-api
   RESOURCE_GROUP: TheOneCrawl
@@ -34,7 +34,7 @@ jobs:
       - name: Build and push to ACR
         run: |
           az acr build \
-            --registry jpgportalacr \
+            --registry theonecrawlacr \
             --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --image ${{ env.IMAGE_NAME }}:latest \
             --file api/Dockerfile \

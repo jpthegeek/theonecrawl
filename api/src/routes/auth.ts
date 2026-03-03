@@ -4,10 +4,11 @@
 
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 import { hashPassword, verifyPassword } from '../auth/passwords.js';
 import { createSession, getSession, destroySession } from '../auth/sessions.js';
 import { cosmosQuery, cosmosUpsert, isCosmosConfigured } from '../shared/cosmos.js';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../shared/email.js';
 import type { AccountRecord } from '../auth/api-keys.js';
 
 export const authRoutes = new Hono();
@@ -65,6 +66,9 @@ authRoutes.post('/register', async (c) => {
   await cosmosUpsert('accounts', account);
 
   createSession(c, { accountId, email: account.email, plan: account.plan });
+
+  // Fire-and-forget welcome email
+  void sendWelcomeEmail(account.email, account.name);
 
   return c.json({
     success: true,
@@ -191,7 +195,86 @@ authRoutes.post('/forgot-password', async (c) => {
     return c.json({ success: true, message: 'If that email exists, a reset link will be sent.' });
   }
 
-  // TODO: Send password reset email via SES
-  // For now, just acknowledge
+  if (isCosmosConfigured()) {
+    const accounts = await cosmosQuery<AccountRecord>(
+      'accounts',
+      'SELECT * FROM c WHERE c.type = "account" AND c.email = @email',
+      [{ name: '@email', value: email.toLowerCase() }],
+    );
+    const account = accounts[0];
+    if (account?.password_hash) {
+      // Generate a reset token (stored in Cosmos, expires in 1 hour)
+      const resetToken = randomBytes(32).toString('hex');
+      await cosmosUpsert('accounts', {
+        id: `reset_${resetToken}`,
+        type: 'password_reset' as const,
+        account_id: account.id,
+        token_hash: createHash('sha256').update(resetToken).digest('hex'),
+        expires_at: new Date(Date.now() + 3600_000).toISOString(),
+        used: false,
+      });
+      void sendPasswordResetEmail(account.email, resetToken);
+    }
+  }
+
   return c.json({ success: true, message: 'If that email exists, a reset link will be sent.' });
+});
+
+// ---------------------------------------------------------------------------
+// POST /auth/reset-password
+// ---------------------------------------------------------------------------
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
+authRoutes.post('/reset-password', async (c) => {
+  const body = await c.req.json().catch(() => null);
+  const parsed = resetPasswordSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json({ success: false, error: 'Invalid input' }, 400);
+  }
+
+  if (!isCosmosConfigured()) {
+    return c.json({ success: false, error: 'Database not configured' }, 503);
+  }
+
+  const tokenHash = createHash('sha256').update(parsed.data.token).digest('hex');
+  const resets = await cosmosQuery<{
+    id: string;
+    account_id: string;
+    token_hash: string;
+    expires_at: string;
+    used: boolean;
+  }>(
+    'accounts',
+    'SELECT * FROM c WHERE c.type = "password_reset" AND c.token_hash = @hash AND c.used = false',
+    [{ name: '@hash', value: tokenHash }],
+  );
+
+  const reset = resets[0];
+  if (!reset || new Date(reset.expires_at) < new Date()) {
+    return c.json({ success: false, error: 'Invalid or expired reset token' }, 400);
+  }
+
+  // Update password
+  const accounts = await cosmosQuery<AccountRecord>(
+    'accounts',
+    'SELECT * FROM c WHERE c.id = @id AND c.type = "account"',
+    [{ name: '@id', value: reset.account_id }],
+  );
+  const account = accounts[0];
+  if (!account) {
+    return c.json({ success: false, error: 'Account not found' }, 404);
+  }
+
+  account.password_hash = await hashPassword(parsed.data.password);
+  account.updated_at = new Date().toISOString();
+  await cosmosUpsert('accounts', account);
+
+  // Mark token as used
+  await cosmosUpsert('accounts', { ...reset, used: true });
+
+  return c.json({ success: true });
 });

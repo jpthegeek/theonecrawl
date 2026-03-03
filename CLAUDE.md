@@ -55,13 +55,13 @@ shared/           — Cross-cutting concerns
 
 | Resource | Name | Type |
 |---|---|---|
-| Cosmos DB | `theonecrawl-cosmos` | Serverless |
+| Cosmos DB | `theonecrawl-cosmos` | Provisioned (autoscale 5000 RU) |
 | Container App | `theonecrawl-api` | 2 vCPU / 4 GiB |
 | Container App Env | `theonecrawl-env` | East US 2 |
 | Static Web App | `theonecrawl-web` | Free |
-| Key Vault | `theonecrawl-vault` | Standard |
+| Key Vault | `theonecrawl-vault` | Standard (RBAC) |
 | Managed Identity | `theonecrawl-identity` | User-assigned |
-| Container Registry | `jpgportalacr` | Shared |
+| Container Registry | `theonecrawlacr` | Basic (dedicated) |
 
 ### Cosmos DB (database: `theonecrawl`)
 
