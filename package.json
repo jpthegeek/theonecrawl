@@ -1,0 +1,24 @@
+{
+  "name": "theonecrawl",
+  "private": true,
+  "description": "Open-source web crawling engine with CMS block conversion. Firecrawl-compatible API.",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "dev": "pnpm --filter @theonecrawl/api dev",
+    "build": "pnpm --filter @theonecrawl/api build",
+    "build:web": "pnpm --filter @theonecrawl/web build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=9"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp"
+    ]
+  }
+}
