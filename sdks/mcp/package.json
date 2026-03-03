@@ -1,0 +1,28 @@
+{
+  "name": "@theonecrawl/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for TheOneCrawl — use web crawling from any AI assistant",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "theonecrawl-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@theonecrawl/js": "workspace:*",
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0"
+  }
+}

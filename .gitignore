@@ -11,3 +11,10 @@ coverage/
 *.log
 tmp/
 .playwright/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+build/

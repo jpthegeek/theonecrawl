@@ -1,0 +1,47 @@
+{
+  "name": "@theonecrawl/js",
+  "version": "0.1.0",
+  "description": "Official JavaScript SDK for TheOneCrawl — Firecrawl-compatible web crawling API",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.7.0"
+  },
+  "keywords": [
+    "web-crawling",
+    "scraping",
+    "firecrawl",
+    "cms",
+    "markdown"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jpthegeek/theonecrawl",
+    "directory": "sdks/js"
+  },
+  "homepage": "https://theonecrawl.app"
+}

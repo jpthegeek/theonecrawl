@@ -45,6 +45,14 @@ export const CREDIT_COSTS = {
   screenshot: 0, // included free
 } as const;
 
+// Stripe price IDs (set in Stripe dashboard)
+export const STRIPE_PRICE_IDS: Record<string, string> = {
+  hobby: process.env['STRIPE_PRICE_HOBBY'] || 'price_hobby',
+  standard: process.env['STRIPE_PRICE_STANDARD'] || 'price_standard',
+  growth: process.env['STRIPE_PRICE_GROWTH'] || 'price_growth',
+  enterprise: process.env['STRIPE_PRICE_ENTERPRISE'] || 'price_enterprise',
+};
+
 // Domains
 export const API_DOMAIN = 'api.theonecrawl.app';
 export const APP_DOMAIN = 'app.theonecrawl.app';

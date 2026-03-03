@@ -1,0 +1,16 @@
+export const routes = {
+  home: '/',
+  pricing: '/pricing',
+  docs: '/docs',
+  login: '/login',
+  register: '/register',
+  forgotPassword: '/forgot-password',
+  dashboard: '/dashboard',
+  apiKeys: '/dashboard/api-keys',
+  crawls: '/dashboard/crawls',
+  crawlDetail: (id: string) => `/dashboard/crawls/${id}`,
+  usage: '/dashboard/usage',
+  billing: '/dashboard/billing',
+  settings: '/dashboard/settings',
+  playground: '/dashboard/playground',
+} as const;

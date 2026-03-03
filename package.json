@@ -5,8 +5,13 @@
   "license": "AGPL-3.0",
   "scripts": {
     "dev": "pnpm --filter @theonecrawl/api dev",
-    "build": "pnpm --filter @theonecrawl/api build",
+    "dev:web": "pnpm --filter @theonecrawl/web dev",
+    "build": "pnpm -r build",
+    "build:api": "pnpm --filter @theonecrawl/api build",
     "build:web": "pnpm --filter @theonecrawl/web build",
+    "build:sdk": "pnpm --filter @theonecrawl/js build",
+    "build:cli": "pnpm --filter @theonecrawl/cli build",
+    "build:mcp": "pnpm --filter @theonecrawl/mcp build",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test"

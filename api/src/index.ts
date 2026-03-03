@@ -12,6 +12,13 @@ import { serve } from '@hono/node-server';
 import { scrapeRoutes } from './routes/scrape.js';
 import { crawlRoutes } from './routes/crawl.js';
 import { mapRoutes } from './routes/map.js';
+import { authRoutes } from './routes/auth.js';
+import { accountRoutes } from './routes/account.js';
+import { apiKeysRoutes } from './routes/api-keys-routes.js';
+import { usageRoutes } from './routes/usage.js';
+import { jobsRoutes } from './routes/jobs-routes.js';
+import { billingRoutes } from './routes/billing.js';
+import { extractRoutes } from './routes/extract.js';
 import { getQueueStats, stopWorker, setJobStore, loadPendingJobs } from './engine/queue.js';
 import { isCosmosConfigured } from './shared/cosmos.js';
 import { JobStore } from './shared/job-store.js';
@@ -68,17 +75,22 @@ app.get('/health', (c) => {
 app.route('/v1/scrape', scrapeRoutes);
 app.route('/v1/crawl', crawlRoutes);
 app.route('/v1/map', mapRoutes);
+app.route('/v1/extract', extractRoutes);
 
 // ---------------------------------------------------------------------------
-// Stub routes (Phase 7)
+// Dashboard/auth routes
 // ---------------------------------------------------------------------------
 
-app.post('/v1/extract', (c) => {
-  return c.json({
-    success: false,
-    error: 'AI extraction is coming soon. Use /v1/scrape with formats: ["extract"] for basic extraction.',
-  }, 501);
-});
+app.route('/v1/auth', authRoutes);
+app.route('/v1/account', accountRoutes);
+app.route('/v1/api-keys', apiKeysRoutes);
+app.route('/v1/usage', usageRoutes);
+app.route('/v1/jobs', jobsRoutes);
+app.route('/v1/billing', billingRoutes);
+
+// ---------------------------------------------------------------------------
+// Stubs
+// ---------------------------------------------------------------------------
 
 app.post('/v1/batch/scrape', (c) => {
   return c.json({
