@@ -101,6 +101,16 @@ shared/           — Cross-cutting concerns
 - **AGPL-3.0** — core engine is open source, SaaS adds auth/billing/dashboard
 - **Stripe** — shared StatusOne LLC account, separate products
 
+## Integration
+
+See `docs/INTEGRATION.md` for comprehensive integration docs. This includes:
+- All API endpoints with request/response schemas
+- SDK usage (JS, Python, CLI, MCP)
+- Webhook setup and signature verification
+- Error codes and credit costs
+- Infrastructure details and Key Vault secrets
+- Firecrawl migration guide
+
 ## Dev Commands
 
 ```bash
