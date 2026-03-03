@@ -16,6 +16,9 @@ import type {
   MapResponse,
   ExtractParams,
   ExtractResponse,
+  BatchScrapeParams,
+  BatchScrapeResponse,
+  BatchScrapeStatusResponse,
   CmsBlocksResponse,
   DesignSystemResponse,
 } from './types.js';
@@ -87,6 +90,40 @@ export class TheOneCrawl {
       method: 'POST',
       body: { url, ...params },
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Batch Scrape
+  // ---------------------------------------------------------------------------
+
+  /** Start a batch scrape and poll until complete. */
+  async batchScrape(params: BatchScrapeParams): Promise<BatchScrapeStatusResponse> {
+    const { id } = await this.startBatchScrape(params);
+    return this.pollBatchScrape(id);
+  }
+
+  /** Start a batch scrape and return the job ID without polling. */
+  async startBatchScrape(params: BatchScrapeParams): Promise<BatchScrapeResponse> {
+    return this.request<BatchScrapeResponse>('/v1/batch/scrape', {
+      method: 'POST',
+      body: params,
+    });
+  }
+
+  async getBatchScrapeStatus(id: string): Promise<BatchScrapeStatusResponse> {
+    return this.request<BatchScrapeStatusResponse>(`/v1/batch/scrape/${encodeURIComponent(id)}`);
+  }
+
+  private async pollBatchScrape(id: string): Promise<BatchScrapeStatusResponse> {
+    const start = Date.now();
+    while (Date.now() - start < MAX_POLL_TIME) {
+      const status = await this.getBatchScrapeStatus(id);
+      if (status.status === 'completed' || status.status === 'failed') {
+        return status;
+      }
+      await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+    }
+    throw new TheOneCrawlError('Batch scrape polling timed out after 5 minutes', 408);
   }
 
   // ---------------------------------------------------------------------------

@@ -1,0 +1,52 @@
+name: Load Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      test:
+        description: 'Test to run'
+        required: true
+        type: choice
+        options:
+          - scrape-steady
+          - crawl-burst
+          - mixed-workload
+          - rate-limit-test
+      target:
+        description: 'Target API URL'
+        required: true
+        default: 'https://api.theonecrawl.app'
+      api_key:
+        description: 'API key (use a test key)'
+        required: true
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl -sL https://dl.k6.io/key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/k6-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+
+      - name: Run k6 load test
+        run: |
+          k6 run \
+            --env API_URL=${{ inputs.target }} \
+            --env API_KEY=${{ inputs.api_key }} \
+            --out json=results.json \
+            tests/load/${{ inputs.test }}.js
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results-${{ inputs.test }}
+          path: results.json
+          retention-days: 30

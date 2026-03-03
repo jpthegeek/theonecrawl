@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------------------
 
 import { cosmosUpsert, cosmosRead, cosmosQuery, cosmosDelete } from './cosmos.js';
+import { logger } from './logger.js';
 import type { CrawlJob } from '../engine/types.js';
 
 const CONTAINER = 'jobs';
@@ -23,7 +24,7 @@ export class JobStore {
       };
       await cosmosUpsert(CONTAINER, doc);
     } catch (err) {
-      console.error(`[job-store] Failed to save job ${job.id}:`, err);
+      logger.error('Failed to save job', { jobId: job.id, error: err instanceof Error ? err.message : String(err) });
     }
   }
 
@@ -31,7 +32,7 @@ export class JobStore {
     try {
       return await cosmosRead<CrawlJob>(CONTAINER, jobId, accountId);
     } catch (err) {
-      console.error(`[job-store] Failed to get job ${jobId}:`, err);
+      logger.error('Failed to get job', { jobId, error: err instanceof Error ? err.message : String(err) });
       return null;
     }
   }
@@ -45,7 +46,7 @@ export class JobStore {
         [{ name: '@accountId', value: accountId }],
       );
     } catch (err) {
-      console.error(`[job-store] Failed to get jobs for account ${accountId}:`, err);
+      logger.error('Failed to get jobs for account', { accountId, error: err instanceof Error ? err.message : String(err) });
       return [];
     }
   }
@@ -57,7 +58,19 @@ export class JobStore {
         `SELECT * FROM c WHERE c.type = 'crawl_job' AND c.status = 'queued'`,
       );
     } catch (err) {
-      console.error('[job-store] Failed to load pending jobs:', err);
+      logger.error('Failed to load pending jobs', { error: err instanceof Error ? err.message : String(err) });
+      return [];
+    }
+  }
+
+  async loadInterruptedJobs(): Promise<CrawlJob[]> {
+    try {
+      return await cosmosQuery<CrawlJob>(
+        CONTAINER,
+        `SELECT * FROM c WHERE c.type = 'crawl_job' AND c.status IN ('crawling', 'extracting', 'converting')`,
+      );
+    } catch (err) {
+      logger.error('Failed to load interrupted jobs', { error: err instanceof Error ? err.message : String(err) });
       return [];
     }
   }
@@ -68,7 +81,7 @@ export class JobStore {
     } catch (err) {
       const code = (err as { code?: number }).code;
       if (code !== 404) {
-        console.error(`[job-store] Failed to delete job ${jobId}:`, err);
+        logger.error('Failed to delete job', { jobId, error: err instanceof Error ? err.message : String(err) });
       }
     }
   }

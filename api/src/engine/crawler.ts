@@ -8,8 +8,13 @@ import {
   Configuration,
 } from 'crawlee';
 import type { Page } from 'playwright';
-import { extractContent, extractSiteMetadata, detectTechnology } from './extractor.js';
+import { extractContent, extractSiteMetadata, detectTechnology, filterHtmlByTags } from './extractor.js';
 import { convertToCmsBlocks, generateThemeSuggestion } from './converter.js';
+import { executeActions, sanitizeHeaders } from './actions.js';
+import { isPdfUrl, parsePdf } from './pdf-parser.js';
+import { validateUrlNotPrivate, fetchWithSsrfProtection } from '../shared/ssrf.js';
+import { logger } from '../shared/logger.js';
+import type { ActionResult } from './actions.js';
 import type {
   CrawlOptions,
   CrawlResult,
@@ -17,6 +22,10 @@ import type {
   SiteMetadata,
   CrawlProgress,
 } from './types.js';
+
+// Content size limits
+const MAX_HTML_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_PDF_SIZE = 50 * 1024 * 1024; // 50 MB
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -31,6 +40,26 @@ export async function crawlWebsite(
   options: CrawlOptions,
   onProgress?: (progress: CrawlProgress) => void,
 ): Promise<CrawlResult> {
+  // Handle PDF URLs directly (no Playwright needed)
+  if (isPdfUrl(startUrl)) {
+    const pdfPage = await crawlPdfPage(startUrl);
+    return {
+      pages: [pdfPage],
+      media: [],
+      siteMetadata: {
+        title: pdfPage.title,
+        description: pdfPage.description,
+        favicon: '',
+        ogImage: '',
+        colorPalette: [],
+        primaryFont: 'Inter',
+        secondaryFont: 'Inter',
+        technology: [],
+        language: 'en',
+      },
+    };
+  }
+
   const parsedUrl = new URL(startUrl);
   const baseOrigin = parsedUrl.origin;
 
@@ -81,23 +110,51 @@ export async function crawlWebsite(
 
       preNavigationHooks: [
         async ({ page }: { page: Page }) => {
-          // Set viewport
-          await page.setViewportSize(options.viewport);
-
-          // Set user agent
-          if (options.userAgent) {
-            await page.setExtraHTTPHeaders({
-              'User-Agent': options.userAgent,
-            });
+          // Mobile emulation
+          if (options.mobile) {
+            await page.setViewportSize({ width: 390, height: 844 });
+          } else {
+            await page.setViewportSize(options.viewport);
           }
 
-          // Block unnecessary resources for faster crawling
-          await page.route('**/*', (route) => {
+          // Build custom headers
+          const extraHeaders: Record<string, string> = {};
+          if (options.userAgent) {
+            extraHeaders['User-Agent'] = options.userAgent;
+          }
+          if (options.mobile) {
+            extraHeaders['User-Agent'] =
+              'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+          }
+          // Apply user-provided custom headers (sanitized)
+          if (options.headers) {
+            Object.assign(extraHeaders, sanitizeHeaders(options.headers));
+          }
+          if (Object.keys(extraHeaders).length > 0) {
+            await page.setExtraHTTPHeaders(extraHeaders);
+          }
+
+          // Block unnecessary resources + SSRF protection for all sub-requests
+          await page.route('**/*', async (route) => {
             const type = route.request().resourceType();
             // Block media-heavy resources to speed up crawling
             if (['media', 'font', 'websocket'].includes(type)) {
               return route.abort();
             }
+
+            // SSRF protection: validate each request URL to prevent redirect-based SSRF
+            // and executeJavascript-initiated fetches to internal hosts
+            const reqUrl = route.request().url();
+            try {
+              const ssrfCheck = await validateUrlNotPrivate(reqUrl);
+              if (!ssrfCheck.valid) {
+                logger.warn('Blocked SSRF attempt in browser context', { url: reqUrl });
+                return route.abort();
+              }
+            } catch {
+              return route.abort();
+            }
+
             return route.continue();
           });
         },
@@ -133,8 +190,30 @@ export async function crawlWebsite(
           // Scroll the page to trigger lazy-loaded content
           await autoScroll(page);
 
-          // Get the fully rendered HTML
-          const html = await page.content();
+          // waitFor: number → timeout, string → CSS selector
+          if (options.waitFor != null) {
+            if (typeof options.waitFor === 'number') {
+              await page.waitForTimeout(options.waitFor);
+            } else if (typeof options.waitFor === 'string') {
+              await page.waitForSelector(options.waitFor, { timeout: 10_000 }).catch(() => {
+                log.warning(`waitFor selector "${options.waitFor}" timed out on ${url}`);
+              });
+            }
+          }
+
+          // Execute browser actions
+          let actionResults: ActionResult[] | undefined;
+          if (options.actions && options.actions.length > 0) {
+            actionResults = await executeActions(page, options.actions);
+          }
+
+          // Get the fully rendered HTML (apply tag filtering if configured)
+          let html = await page.content();
+          if (html.length > MAX_HTML_SIZE) {
+            logger.warn('Page content exceeds size limit, truncating', { url, size: html.length });
+            html = html.slice(0, MAX_HTML_SIZE);
+          }
+          html = filterHtmlByTags(html, options.includeTags, options.excludeTags);
           const loadTimeMs = Date.now() - startTime;
 
           // Take screenshot
@@ -185,6 +264,7 @@ export async function crawlWebsite(
             html,
             screenshot,
             extractedContent,
+            actionResults,
             statusCode: response,
             loadTimeMs,
           };
@@ -315,6 +395,66 @@ export async function crawlSinglePage(
   return page;
 }
 
+/**
+ * Fetch a PDF URL and return a PageResult with extracted text.
+ */
+async function crawlPdfPage(url: string): Promise<PageResult> {
+  const startTime = Date.now();
+  const resp = await fetchWithSsrfProtection(url, {
+    headers: { 'User-Agent': 'TheOneCrawl/1.0 (+https://theonecrawl.app/bot)' },
+    signal: AbortSignal.timeout(30_000),
+  });
+
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch PDF: HTTP ${resp.status}`);
+  }
+
+  // Streaming size limit for PDFs
+  const contentLength = resp.headers.get('content-length');
+  if (contentLength && parseInt(contentLength, 10) > MAX_PDF_SIZE) {
+    throw new Error(`PDF too large (${contentLength} bytes, max ${MAX_PDF_SIZE})`);
+  }
+
+  const arrayBuffer = await resp.arrayBuffer();
+  if (arrayBuffer.byteLength > MAX_PDF_SIZE) {
+    throw new Error(`PDF too large (${arrayBuffer.byteLength} bytes, max ${MAX_PDF_SIZE})`);
+  }
+
+  const buffer = Buffer.from(arrayBuffer);
+  const pdfResult = await parsePdf(buffer);
+  const loadTimeMs = Date.now() - startTime;
+
+  return {
+    url,
+    title: pdfResult.metadata.title || url.split('/').pop() || 'PDF Document',
+    description: pdfResult.metadata.subject || '',
+    html: `<pre>${pdfResult.text}</pre>`,
+    markdown: pdfResult.text,
+    extractedContent: {
+      headings: [],
+      paragraphs: pdfResult.text.split(/\n\n+/).filter((p) => p.trim().length > 10),
+      images: [],
+      links: [],
+      navigation: [],
+      forms: [],
+      socialLinks: [],
+      contactInfo: [],
+      colorPalette: [],
+      fonts: [],
+      sections: [],
+      lists: [],
+      tables: [],
+      videos: [],
+      testimonials: [],
+      faqs: [],
+      pricingPlans: [],
+      stats: [],
+    },
+    statusCode: resp.status,
+    loadTimeMs,
+  };
+}
+
 // ---------------------------------------------------------------------------
 // Auto-scroll to trigger lazy loading
 // ---------------------------------------------------------------------------
@@ -407,18 +547,31 @@ const DEFAULT_BLOCKED = [
   /\/robots\.txt/i,
 ];
 
+/**
+ * Convert a user-supplied pattern to a safe glob regex.
+ * Escapes all regex metacharacters, only allows * (any chars) and ? (single char).
+ * This prevents ReDoS from user-supplied patterns.
+ */
+function safeGlobToRegex(pattern: string): RegExp {
+  const escaped = pattern
+    .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    .replace(/\*/g, '.*')
+    .replace(/\?/g, '.');
+  return new RegExp(escaped, 'i');
+}
+
 function shouldBlockUrl(url: string, extraPatterns: string[]): boolean {
-  // Check default blocked patterns
+  // Check default blocked patterns (pre-compiled, trusted)
   for (const pattern of DEFAULT_BLOCKED) {
     if (pattern.test(url)) return true;
   }
 
-  // Check user-specified blocked patterns
+  // Check user-specified blocked patterns (safe glob only — no raw regex)
   for (const pattern of extraPatterns) {
     try {
-      if (new RegExp(pattern, 'i').test(url)) return true;
+      if (safeGlobToRegex(pattern).test(url)) return true;
     } catch {
-      // Invalid regex, skip
+      // Skip invalid patterns
     }
   }
 
@@ -428,14 +581,9 @@ function shouldBlockUrl(url: string, extraPatterns: string[]): boolean {
 function matchesAnyPattern(url: string, patterns: string[]): boolean {
   for (const pattern of patterns) {
     try {
-      if (new RegExp(pattern, 'i').test(url)) return true;
+      if (safeGlobToRegex(pattern).test(url)) return true;
     } catch {
-      // Invalid regex, try simple glob
-      const regexStr = pattern
-        .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-        .replace(/\*/g, '.*')
-        .replace(/\?/g, '.');
-      if (new RegExp(regexStr, 'i').test(url)) return true;
+      // Skip invalid patterns
     }
   }
   return false;

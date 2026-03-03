@@ -6,6 +6,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { getSession } from '../auth/sessions.js';
 import { createApiKey, revokeApiKey, listApiKeys } from '../auth/api-keys.js';
+const MAX_API_KEYS_PER_ACCOUNT = 10;
 import { getAuthFromRequest } from '../auth/sessions.js';
 
 export const apiKeysRoutes = new Hono();
@@ -49,7 +50,13 @@ apiKeysRoutes.post('/', async (c) => {
   const body = await c.req.json().catch(() => null);
   const parsed = createSchema.safeParse(body);
   if (!parsed.success) {
-    return c.json({ success: false, error: parsed.error.issues[0]?.message ?? 'Invalid input' }, 400);
+    return c.json({ success: false, error: 'Validation failed', details: parsed.error.flatten() }, 400);
+  }
+
+  // Enforce per-account key limit
+  const existingKeys = await listApiKeys(session.accountId);
+  if (existingKeys.length >= MAX_API_KEYS_PER_ACCOUNT) {
+    return c.json({ success: false, error: `Maximum ${MAX_API_KEYS_PER_ACCOUNT} API keys per account` }, 400);
   }
 
   const { key, record } = await createApiKey(session.accountId, parsed.data.name, parsed.data.environment);

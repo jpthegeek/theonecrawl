@@ -25,17 +25,20 @@ sdks/mcp/         — @theonecrawl/mcp (MCP server)
 
 ```
 engine/           — Core crawl engine (Playwright + Crawlee + Cheerio + Sharp)
-  crawler.ts      — Multi-page crawling with Playwright
-  extractor.ts    — Cheerio-based content extraction (headings, images, links, etc.)
+  crawler.ts      — Multi-page crawling with Playwright (+ PDF, mobile, actions)
+  extractor.ts    — Cheerio-based content extraction + tag filtering
   converter.ts    — HTML → CMS block conversion
   media-processor.ts — Image download, dedup, optimization
   markdown-converter.ts — ExtractedContent → clean markdown
-  queue.ts        — In-memory job queue with worker loop
+  queue.ts        — In-memory job queue with worker loop + batch support
+  actions.ts      — Browser action execution (8 types) + header sanitization
+  pdf-parser.ts   — PDF text extraction via pdf-parse
   types.ts        — All TypeScript interfaces
   cms-types.ts    — Inlined CMS types (from former @nexuvo/cms-core)
 routes/           — Hono route handlers
-  scrape.ts       — POST /v1/scrape (synchronous)
+  scrape.ts       — POST /v1/scrape (sync, actions, headers, mobile, inline extract)
   crawl.ts        — POST /v1/crawl, GET /v1/crawl/:id, DELETE, cms-blocks, design-system
+  batch-scrape.ts — POST /v1/batch/scrape, GET /v1/batch/scrape/:id
   map.ts          — POST /v1/map
 auth/             — Authentication layer
   api-keys.ts     — tc_live_/tc_test_ key generation, SHA-256 hashing, validation
@@ -46,8 +49,10 @@ billing/          — Credits and Stripe
 shared/           — Cross-cutting concerns
   cosmos.ts       — Direct @azure/cosmos client (single DB)
   job-store.ts    — Cosmos job persistence
-  webhooks.ts     — HMAC-SHA256 webhook delivery
+  webhooks.ts     — HMAC-SHA256 webhook delivery (+ batch events)
   ssrf.ts         — Private IP/host blocking
+  anthropic.ts    — Shared Anthropic client
+  logger.ts       — Structured JSON logger
   constants.ts    — Service constants, plan configs
 ```
 
@@ -75,11 +80,14 @@ shared/           — Cross-cutting concerns
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/v1/scrape` | Single page scrape (sync) |
-| POST | `/v1/crawl` | Multi-page async crawl |
+| POST | `/v1/scrape` | Single page scrape (sync) — supports actions, headers, mobile, waitFor, inline extract |
+| POST | `/v1/crawl` | Multi-page async crawl — supports actions, headers, mobile in scrapeOptions |
 | GET | `/v1/crawl/:id` | Poll crawl status |
 | DELETE | `/v1/crawl/:id` | Cancel crawl |
+| POST | `/v1/batch/scrape` | Batch scrape multiple URLs (max 100) |
+| GET | `/v1/batch/scrape/:id` | Poll batch scrape status |
 | POST | `/v1/map` | URL/sitemap discovery |
+| POST | `/v1/extract` | AI extraction (Claude) — standalone |
 | GET | `/v1/crawl/:id/cms-blocks` | CMS blocks (exclusive) |
 | GET | `/v1/crawl/:id/design-system` | Design system (exclusive) |
 
@@ -118,4 +126,5 @@ pnpm install          # Install all dependencies
 pnpm dev              # Start API in dev mode (tsx watch)
 pnpm build            # Build API TypeScript
 pnpm typecheck        # Type check all packages
+pnpm test             # Run vitest test suite (api)
 ```

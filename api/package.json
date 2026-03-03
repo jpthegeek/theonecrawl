@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
@@ -19,15 +20,19 @@
     "cheerio": "^1.0.0",
     "crawlee": "^3.0.0",
     "hono": "^4.0.0",
+    "ioredis": "^5.4.0",
     "nanoid": "^5.0.0",
+    "pdf-parse": "^2.4.5",
     "playwright": "^1.40.0",
     "sharp": "^0.33.0",
     "stripe": "^18.0.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
+    "@types/node": "^20.0.0",
+    "@types/pdf-parse": "^1.1.5",
     "tsx": "^4.7.0",
-    "@types/node": "^20.0.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   }
 }

@@ -11,13 +11,46 @@ export type ScrapeFormat =
   | 'extract'
   | 'cms_blocks';
 
+export type BrowserActionType =
+  | 'wait'
+  | 'click'
+  | 'write'
+  | 'press'
+  | 'scroll'
+  | 'screenshot'
+  | 'executeJavascript'
+  | 'scrape';
+
+export interface BrowserAction {
+  type: BrowserActionType;
+  selector?: string;
+  milliseconds?: number;
+  text?: string;
+  key?: string;
+  direction?: 'up' | 'down';
+  amount?: number;
+  script?: string;
+}
+
+export interface ActionResult {
+  type: BrowserActionType;
+  success: boolean;
+  screenshot?: string;
+  html?: string;
+  result?: unknown;
+  error?: string;
+}
+
 export interface ScrapeParams {
   formats?: ScrapeFormat[];
   onlyMainContent?: boolean;
   includeTags?: string[];
   excludeTags?: string[];
-  waitFor?: number;
+  waitFor?: number | string;
   timeout?: number;
+  actions?: BrowserAction[];
+  headers?: Record<string, string>;
+  mobile?: boolean;
   extract?: {
     schema?: Record<string, unknown>;
     prompt?: string;
@@ -31,6 +64,7 @@ export interface CrawlParams {
   excludePaths?: string[];
   scrapeOptions?: ScrapeParams;
   webhook?: string;
+  webhookSecret?: string;
   allowBackwardLinks?: boolean;
   ignoreSitemap?: boolean;
 }
@@ -46,6 +80,38 @@ export interface ExtractParams {
   prompt?: string;
   schema?: Record<string, unknown>;
   enableWebSearch?: boolean;
+}
+
+export interface BatchScrapeParams {
+  urls: string[];
+  formats?: ScrapeFormat[];
+  onlyMainContent?: boolean;
+  includeTags?: string[];
+  excludeTags?: string[];
+  webhook?: string;
+  webhookSecret?: string;
+}
+
+export interface BatchScrapeResponse {
+  success: boolean;
+  id: string;
+  url: string;
+}
+
+export interface BatchScrapeStatusResponse {
+  success: boolean;
+  status: 'scraping' | 'completed' | 'failed';
+  total: number;
+  completed: number;
+  creditsUsed: number;
+  data: Array<{
+    url: string;
+    markdown?: string;
+    html?: string;
+    metadata: PageMetadata;
+    links?: LinkData[];
+  }>;
+  expiresAt?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -81,6 +147,7 @@ export interface ScrapeResponse {
     metadata: PageMetadata;
     cms_blocks?: unknown[];
     designSystem?: unknown;
+    actions?: ActionResult[];
     extract?: unknown;
   };
 }
@@ -115,21 +182,35 @@ export interface MapResponse {
 export interface ExtractResponse {
   success: boolean;
   data: unknown;
+  creditsUsed?: number;
 }
 
 export interface CmsBlocksResponse {
-  jobId: string;
-  url: string;
-  blocks: unknown[];
-  themeSuggestion?: unknown;
-  headerBlock?: unknown;
-  footerBlock?: unknown;
+  success: boolean;
+  data: {
+    jobId: string;
+    url: string;
+    blocks: unknown[];
+    themeSuggestion?: unknown;
+    headerBlock?: unknown;
+    footerBlock?: unknown;
+    pageIndex: number;
+    totalPages: number;
+  };
 }
 
 export interface DesignSystemResponse {
-  jobId: string;
-  url: string;
-  designSystem: unknown;
+  success: boolean;
+  data: {
+    siteMetadata: unknown;
+    themeSuggestion?: unknown;
+    colorPalette: unknown[];
+    fonts: {
+      primary: string;
+      secondary: string;
+    };
+    technology: string[];
+  };
 }
 
 // ---------------------------------------------------------------------------

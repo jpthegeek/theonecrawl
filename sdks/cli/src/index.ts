@@ -8,6 +8,7 @@ import { cancelCommand } from './commands/cancel.js';
 import { cmsBlocksCommand } from './commands/cms-blocks.js';
 import { designSystemCommand } from './commands/design-system.js';
 import { loginCommand } from './commands/login.js';
+import { batchScrapeCommand } from './commands/batch-scrape.js';
 
 const program = new Command();
 
@@ -27,6 +28,8 @@ program
   .option('-f, --format <formats>', 'Output formats (comma-separated: markdown,html,links)')
   .option('-t, --timeout <ms>', 'Timeout in milliseconds')
   .option('-m, --main-content', 'Extract only main content')
+  .option('--mobile', 'Emulate mobile device')
+  .option('--header <key:value>', 'Custom HTTP header (repeatable)', (val: string, acc: string[]) => { acc.push(val); return acc; }, [])
   .option('--json', 'Output raw JSON')
   .action(scrapeCommand);
 
@@ -45,6 +48,14 @@ program
   .option('-l, --limit <count>', 'Max URLs to return')
   .option('--json', 'Output raw JSON')
   .action(mapCommand);
+
+program
+  .command('batch-scrape <urls...>')
+  .description('Scrape multiple URLs in a batch')
+  .option('-f, --format <formats>', 'Output formats (comma-separated: markdown,html,links)')
+  .option('-m, --main-content', 'Extract only main content')
+  .option('--json', 'Output raw JSON')
+  .action(batchScrapeCommand);
 
 program
   .command('extract <url>')

@@ -1167,3 +1167,44 @@ function deduplicateByField<T extends object>(arr: T[], field: keyof T): T[] {
     return true;
   });
 }
+
+// ---------------------------------------------------------------------------
+// HTML tag filtering (include/exclude tags support)
+// ---------------------------------------------------------------------------
+
+/**
+ * Filter HTML by include/exclude tag selectors.
+ * - includeTags: keep only content matching these CSS selectors
+ * - excludeTags: remove elements matching these CSS selectors
+ */
+export function filterHtmlByTags(
+  html: string,
+  includeTags?: string[],
+  excludeTags?: string[],
+): string {
+  if ((!includeTags || includeTags.length === 0) && (!excludeTags || excludeTags.length === 0)) {
+    return html;
+  }
+
+  const $ = cheerio.load(html);
+
+  // Remove excluded tags first
+  if (excludeTags && excludeTags.length > 0) {
+    for (const selector of excludeTags) {
+      $(selector).remove();
+    }
+  }
+
+  // If includeTags specified, extract only matching content
+  if (includeTags && includeTags.length > 0) {
+    const matched: string[] = [];
+    for (const selector of includeTags) {
+      $(selector).each((_i, el) => {
+        matched.push($.html(el) ?? '');
+      });
+    }
+    return matched.join('\n');
+  }
+
+  return $.html() ?? html;
+}

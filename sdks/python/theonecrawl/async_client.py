@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import os
 from typing import Any, Dict, Optional
+from urllib.parse import quote
 
 import httpx
 
@@ -93,10 +94,10 @@ class AsyncTheOneCrawl:
         return await self._request("POST", "/v1/crawl", json=body)
 
     async def check_crawl_status(self, crawl_id: str) -> CrawlStatusResponse:
-        return await self._request("GET", f"/v1/crawl/{crawl_id}")
+        return await self._request("GET", f"/v1/crawl/{quote(crawl_id, safe='')}")
 
     async def cancel_crawl(self, crawl_id: str) -> Dict[str, bool]:
-        return await self._request("DELETE", f"/v1/crawl/{crawl_id}")
+        return await self._request("DELETE", f"/v1/crawl/{quote(crawl_id, safe='')}")
 
     # ---- Map ----
 
@@ -116,13 +117,13 @@ class AsyncTheOneCrawl:
     async def get_cms_blocks(
         self, crawl_id: str, page: Optional[int] = None
     ) -> CmsBlocksResponse:
-        path = f"/v1/crawl/{crawl_id}/cms-blocks"
+        path = f"/v1/crawl/{quote(crawl_id, safe='')}/cms-blocks"
         if page is not None:
             path += f"?page={page}"
         return await self._request("GET", path)
 
     async def get_design_system(self, crawl_id: str) -> DesignSystemResponse:
-        return await self._request("GET", f"/v1/crawl/{crawl_id}/design-system")
+        return await self._request("GET", f"/v1/crawl/{quote(crawl_id, safe='')}/design-system")
 
     # ---- Internal ----
 

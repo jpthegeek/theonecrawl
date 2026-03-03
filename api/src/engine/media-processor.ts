@@ -7,6 +7,7 @@ import { createHash } from 'node:crypto';
 import { writeFile, mkdir, readFile, stat } from 'node:fs/promises';
 import { join, extname } from 'node:path';
 import type { MediaAsset } from './types.js';
+import { fetchWithSsrfProtection } from '../shared/ssrf.js';
 
 // ---------------------------------------------------------------------------
 // Configuration
@@ -326,14 +327,14 @@ async function downloadImage(url: string): Promise<DownloadResult> {
   const timeout = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT);
 
   try {
-    const response = await fetch(url, {
+    // Use SSRF-safe fetch to validate URL and each redirect hop
+    const response = await fetchWithSsrfProtection(url, {
       signal: controller.signal,
       headers: {
         'User-Agent':
           'TheOneCrawl/1.0 (+https://theonecrawl.app/bot; compatible)',
         Accept: 'image/*',
       },
-      redirect: 'follow',
     });
 
     if (!response.ok) {

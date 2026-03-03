@@ -5,13 +5,15 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { authMiddleware, getAuth } from '../auth/middleware.js';
-import { consumeCredit, checkCredits } from '../billing/credits.js';
+import { consumeCredit, checkCredits, recordUsageEvent, ensureHydrated, refundCredit } from '../billing/credits.js';
 import { crawlWebsite } from '../engine/crawler.js';
-import { isPrivateHost } from '../shared/ssrf.js';
+import { validateUrlNotPrivate } from '../shared/ssrf.js';
+import { logger } from '../shared/logger.js';
+import { trackCreditConsumption } from '../auth/abuse-detection.js';
 
 const mapSchema = z.object({
-  url: z.string().url('Must be a valid URL'),
-  search: z.string().optional(),
+  url: z.string().url('Must be a valid URL').max(2048),
+  search: z.string().max(500).optional(),
   limit: z.number().int().min(1).max(5000).optional().default(100),
   ignoreSitemap: z.boolean().optional().default(false),
 });
@@ -33,18 +35,14 @@ app.post('/', authMiddleware, async (c) => {
 
   const { url, search, limit } = parsed.data;
 
-  // SSRF check
-  try {
-    const parsedUrl = new URL(url);
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-      return c.json({ success: false, error: 'URL must use http or https protocol' }, 400);
-    }
-    if (isPrivateHost(parsedUrl.hostname)) {
-      return c.json({ success: false, error: 'Cannot map private or internal addresses' }, 400);
-    }
-  } catch {
-    return c.json({ success: false, error: 'Invalid URL' }, 400);
+  // SSRF check (includes DNS rebinding protection)
+  const ssrfCheck = await validateUrlNotPrivate(url);
+  if (!ssrfCheck.valid) {
+    return c.json({ success: false, error: ssrfCheck.error ?? 'Cannot map this URL' }, 400);
   }
+
+  // Ensure credits are loaded from Cosmos
+  await ensureHydrated(auth.accountId);
 
   // Check credits
   const credits = checkCredits(auth.accountId);
@@ -52,7 +50,12 @@ app.post('/', authMiddleware, async (c) => {
     return c.json({ success: false, error: 'Insufficient credits', credits }, 402);
   }
 
-  consumeCredit(auth.accountId);
+  const consumed = consumeCredit(auth.accountId);
+  if (!consumed) {
+    return c.json({ success: false, error: 'Insufficient credits' }, 402);
+  }
+  recordUsageEvent(auth.accountId, 'map', 1, url);
+  void trackCreditConsumption(auth.accountId, 1, credits.total);
 
   try {
     // Quick crawl to discover URLs (minimal extraction)
@@ -92,8 +95,9 @@ app.post('/', authMiddleware, async (c) => {
       links: links.slice(0, limit),
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Map failed';
-    return c.json({ success: false, error: message }, 500);
+    refundCredit(auth.accountId);
+    logger.error('Map failed', { error: err instanceof Error ? err.message : String(err) });
+    return c.json({ success: false, error: 'Map failed' }, 500);
   }
 });
 

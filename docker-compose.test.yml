@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# TheOneCrawl — Integration test infrastructure
+# ---------------------------------------------------------------------------
+# Usage: docker compose -f docker-compose.test.yml up -d
+# ---------------------------------------------------------------------------
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: "3001"
+      HOST: "0.0.0.0"
+      NODE_ENV: "test"
+      REDIS_URL: "redis://redis:6379"
+      SESSION_SECRET: "test-session-secret-for-integration-tests"
+      # Cosmos and Stripe are optional in test mode
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

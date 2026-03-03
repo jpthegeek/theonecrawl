@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import time
 from typing import Any, Dict, Optional
+from urllib.parse import quote
 
 import httpx
 
@@ -16,6 +17,9 @@ from .errors import (
     TheOneCrawlError,
 )
 from .types import (
+    BatchScrapeParams,
+    BatchScrapeResponse,
+    BatchScrapeStatusResponse,
     CmsBlocksResponse,
     CrawlParams,
     CrawlResponse,
@@ -101,10 +105,10 @@ class TheOneCrawl:
         return self._request("POST", "/v1/crawl", json=body)
 
     def check_crawl_status(self, crawl_id: str) -> CrawlStatusResponse:
-        return self._request("GET", f"/v1/crawl/{crawl_id}")
+        return self._request("GET", f"/v1/crawl/{quote(crawl_id, safe='')}")
 
     def cancel_crawl(self, crawl_id: str) -> Dict[str, bool]:
-        return self._request("DELETE", f"/v1/crawl/{crawl_id}")
+        return self._request("DELETE", f"/v1/crawl/{quote(crawl_id, safe='')}")
 
     # ---- Map ----
 
@@ -114,6 +118,27 @@ class TheOneCrawl:
             body.update(_convert_keys(params))
         return self._request("POST", "/v1/map", json=body)
 
+    # ---- Batch Scrape ----
+
+    def batch_scrape_urls(self, params: BatchScrapeParams) -> BatchScrapeStatusResponse:
+        resp = self.start_batch_scrape(params)
+        return self._poll_batch_scrape(resp["id"])
+
+    def start_batch_scrape(self, params: BatchScrapeParams) -> BatchScrapeResponse:
+        return self._request("POST", "/v1/batch/scrape", json=_convert_keys(dict(params)))
+
+    def check_batch_scrape_status(self, batch_id: str) -> BatchScrapeStatusResponse:
+        return self._request("GET", f"/v1/batch/scrape/{quote(batch_id, safe='')}")
+
+    def _poll_batch_scrape(self, batch_id: str) -> BatchScrapeStatusResponse:
+        start = time.monotonic()
+        while time.monotonic() - start < MAX_POLL_TIME:
+            status = self.check_batch_scrape_status(batch_id)
+            if status["status"] in ("completed", "failed"):
+                return status
+            time.sleep(POLL_INTERVAL)
+        raise TheOneCrawlError("Batch scrape polling timed out after 5 minutes", 408)
+
     # ---- Extract ----
 
     def extract(self, params: ExtractParams) -> ExtractResponse:
@@ -122,13 +147,13 @@ class TheOneCrawl:
     # ---- TheOneCrawl exclusives ----
 
     def get_cms_blocks(self, crawl_id: str, page: Optional[int] = None) -> CmsBlocksResponse:
-        path = f"/v1/crawl/{crawl_id}/cms-blocks"
+        path = f"/v1/crawl/{quote(crawl_id, safe='')}/cms-blocks"
         if page is not None:
             path += f"?page={page}"
         return self._request("GET", path)
 
     def get_design_system(self, crawl_id: str) -> DesignSystemResponse:
-        return self._request("GET", f"/v1/crawl/{crawl_id}/design-system")
+        return self._request("GET", f"/v1/crawl/{quote(crawl_id, safe='')}/design-system")
 
     # ---- Internal ----
 

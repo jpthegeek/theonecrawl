@@ -70,24 +70,41 @@ Scrapes a single URL and returns the result immediately.
 ```json
 {
   "url": "https://example.com",
-  "formats": ["markdown", "html", "links", "screenshot", "cms_blocks"],
+  "formats": ["markdown", "html", "links", "screenshot", "cms_blocks", "extract"],
   "onlyMainContent": true,
   "includeTags": ["article", "main"],
   "excludeTags": ["nav", "footer"],
   "waitFor": 2000,
-  "timeout": 30000
+  "timeout": 30000,
+  "mobile": false,
+  "headers": {"Accept-Language": "fr-FR"},
+  "actions": [
+    {"type": "click", "selector": "#load-more"},
+    {"type": "wait", "milliseconds": 1000},
+    {"type": "screenshot"}
+  ],
+  "extract": {
+    "schema": {"title": "string", "price": "number"},
+    "prompt": "Extract the product title and price"
+  }
 }
 ```
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `url` | string | **required** | URL to scrape |
-| `formats` | string[] | `["markdown"]` | Output formats: `markdown`, `html`, `rawHtml`, `screenshot`, `links`, `cms_blocks` |
+| `url` | string | **required** | URL to scrape (also supports `.pdf` URLs) |
+| `formats` | string[] | `["markdown"]` | Output formats: `markdown`, `html`, `rawHtml`, `screenshot`, `links`, `cms_blocks`, `extract` |
 | `onlyMainContent` | boolean | `true` | Strip navigation/footer/ads |
-| `includeTags` | string[] | `[]` | Only include these HTML tags |
-| `excludeTags` | string[] | `[]` | Remove these HTML tags |
-| `waitFor` | number | `0` | Wait N ms after page load for JS |
+| `includeTags` | string[] | `[]` | CSS selectors — only include matching elements |
+| `excludeTags` | string[] | `[]` | CSS selectors — remove matching elements |
+| `waitFor` | number\|string | — | Wait N ms or for a CSS selector after page load |
 | `timeout` | number | `30000` | Per-page timeout in ms |
+| `mobile` | boolean | `false` | Emulate mobile device (iPhone viewport 390x844 + mobile UA) |
+| `headers` | object | `{}` | Custom HTTP headers (Host, Origin, Proxy-* blocked for security) |
+| `actions` | Action[] | `[]` | Browser actions to execute after page load (max 20). See [Browser Actions](#browser-actions). |
+| `extract` | object | — | Inline AI extraction config. Requires `extract` in `formats`. |
+| `extract.schema` | object | — | JSON schema for structured extraction |
+| `extract.prompt` | string | — | Extraction prompt |
 
 **Response (200):**
 ```json
@@ -106,12 +123,29 @@ Scrapes a single URL and returns the result immediately.
       "favicon": "/favicon.ico"
     },
     "cms_blocks": [...],
-    "designSystem": {...}
+    "designSystem": {...},
+    "actions": [{"type": "click", "success": true}, {"type": "screenshot", "success": true, "screenshot": "data:image/jpeg;base64,..."}],
+    "extract": {"title": "Example Product", "price": 29.99}
   }
 }
 ```
 
-**Credit cost:** 1 credit per scrape.
+**Credit cost:** 1 credit per scrape (+5 credits if inline extraction used).
+
+### Browser Actions
+
+Actions are executed sequentially after page load.
+
+| Type | Required Fields | Description |
+|---|---|---|
+| `wait` | `milliseconds` | Wait for a duration (0–30000ms) |
+| `click` | `selector` | Click an element |
+| `write` | `selector`, `text` | Fill an input field |
+| `press` | `key` | Press a keyboard key (e.g., "Enter", "Tab") |
+| `scroll` | — | Scroll page (optional: `direction`, `amount`) |
+| `screenshot` | — | Take a screenshot, returned as base64 |
+| `executeJavascript` | `script` | Run JavaScript in the page |
+| `scrape` | — | Capture current page HTML |
 
 ---
 
@@ -129,7 +163,10 @@ Starts an asynchronous multi-page crawl. Returns a job ID immediately.
   "excludePaths": ["/admin/*"],
   "scrapeOptions": {
     "formats": ["markdown", "cms_blocks"],
-    "onlyMainContent": true
+    "onlyMainContent": true,
+    "actions": [{"type": "click", "selector": "#accept-cookies"}],
+    "headers": {"Accept-Language": "en-US"},
+    "mobile": false
   },
   "webhook": "https://your-app.com/webhook/crawl"
 }
@@ -192,6 +229,62 @@ Pagination: Follow the `next` URL to get more pages.
 ### DELETE /v1/crawl/:id — Cancel Crawl
 
 Returns `{"success":true}` on cancellation.
+
+---
+
+### POST /v1/batch/scrape — Batch Scrape (async)
+
+Scrape multiple URLs in a single operation. Returns a batch ID for polling.
+
+**Request:**
+```json
+{
+  "urls": ["https://example.com/page1", "https://example.com/page2"],
+  "formats": ["markdown"],
+  "onlyMainContent": true,
+  "includeTags": ["main"],
+  "excludeTags": ["nav"],
+  "webhook": "https://your-app.com/webhook/batch"
+}
+```
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `urls` | string[] | **required** | URLs to scrape (max 100) |
+| `formats` | string[] | `["markdown"]` | Output formats |
+| `onlyMainContent` | boolean | `true` | Strip boilerplate |
+| `includeTags` | string[] | `[]` | CSS selectors to include |
+| `excludeTags` | string[] | `[]` | CSS selectors to exclude |
+| `webhook` | string | — | Webhook URL for progress events |
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "id": "batch_abc123",
+  "url": "https://api.theonecrawl.app/v1/batch/scrape/batch_abc123"
+}
+```
+
+### GET /v1/batch/scrape/:id — Poll Batch Status
+
+```json
+{
+  "success": true,
+  "status": "completed",
+  "total": 2,
+  "completed": 2,
+  "creditsUsed": 2,
+  "data": [
+    {"url": "https://example.com/page1", "markdown": "...", "metadata": {...}},
+    {"url": "https://example.com/page2", "markdown": "...", "metadata": {...}}
+  ]
+}
+```
+
+**Webhook events:** `batch.started`, `batch.url_completed`, `batch.completed`, `batch.failed`
+
+**Credit cost:** 1 credit per URL.
 
 ---
 

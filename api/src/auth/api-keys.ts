@@ -5,6 +5,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { cosmosQuery, cosmosUpsert, cosmosDelete, isCosmosConfigured } from '../shared/cosmos.js';
 import { API_KEY_PREFIX_LIVE, API_KEY_PREFIX_TEST, PLAN_RATE_LIMITS } from '../shared/constants.js';
+import { logger } from '../shared/logger.js';
 import type { CrawlPlan } from '../engine/types.js';
 
 // ---------------------------------------------------------------------------
@@ -24,6 +25,8 @@ export interface ApiKeyRecord {
   revoked: boolean;
 }
 
+export type AbuseStatus = 'active' | 'warned' | 'throttled' | 'suspended' | 'banned';
+
 export interface AccountRecord {
   id: string;
   type: 'account';
@@ -36,6 +39,10 @@ export interface AccountRecord {
   stripe_customer_id?: string;
   stripe_subscription_id?: string;
   email_verified: boolean;
+  abuse_status?: AbuseStatus;
+  abuse_score?: number;
+  abuse_status_changed_at?: string;
+  abuse_status_reason?: string;
   created_at: string;
   updated_at: string;
 }
@@ -53,6 +60,15 @@ export interface AuthContext {
 
 const keyCache = new Map<string, { accountId: string; plan: CrawlPlan; environment: 'live' | 'test'; expiresAt: number }>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const MAX_CACHE_SIZE = 10_000;
+
+// Evict expired entries periodically (every 5 minutes)
+setInterval(() => {
+  const now = Date.now();
+  for (const [hash, entry] of keyCache.entries()) {
+    if (entry.expiresAt <= now) keyCache.delete(hash);
+  }
+}, 5 * 60 * 1000).unref();
 
 // ---------------------------------------------------------------------------
 // Key generation
@@ -122,7 +138,11 @@ export async function validateApiKey(key: string): Promise<AuthContext | null> {
     const environment = keyRecord.environment;
     const plan = account.plan;
 
-    // Cache the result
+    // Cache the result (evict oldest if at capacity)
+    if (keyCache.size >= MAX_CACHE_SIZE) {
+      const firstKey = keyCache.keys().next().value;
+      if (firstKey) keyCache.delete(firstKey);
+    }
     keyCache.set(hash, {
       accountId: account.id,
       plan,
@@ -143,7 +163,7 @@ export async function validateApiKey(key: string): Promise<AuthContext | null> {
       rateLimits: PLAN_RATE_LIMITS[plan] ?? PLAN_RATE_LIMITS['free']!,
     };
   } catch (err) {
-    console.error('[api-keys] Validation error:', err);
+    logger.error('API key validation error', { error: err instanceof Error ? err.message : String(err) });
     return null;
   }
 }
@@ -195,7 +215,7 @@ export async function revokeApiKey(keyId: string, accountId: string): Promise<bo
     keyCache.delete(keyRecord.key_hash);
     return true;
   } catch (err) {
-    console.error('[api-keys] Revoke error:', err);
+    logger.error('API key revoke error', { error: err instanceof Error ? err.message : String(err) });
     return false;
   }
 }

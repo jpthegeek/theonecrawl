@@ -5,26 +5,42 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { authMiddleware, getAuth } from '../auth/middleware.js';
-import { checkCredits } from '../billing/credits.js';
+import { checkCredits, ensureHydrated } from '../billing/credits.js';
 import { enqueue, getJob, deleteJob } from '../engine/queue.js';
 import { toMarkdown } from '../engine/markdown-converter.js';
-import { isPrivateHost } from '../shared/ssrf.js';
+import { validateUrlNotPrivate } from '../shared/ssrf.js';
+import { browserActionSchema } from '../engine/actions.js';
+import { logger } from '../shared/logger.js';
 import { DEFAULT_CRAWL_OPTIONS } from '../engine/types.js';
 import type { CrawlStatusResponse, ScrapeFormat } from '../engine/types.js';
 
+const headerValueSchema = z.string().max(4096).refine(
+  (v) => !/[\r\n]/.test(v),
+  'Header value must not contain newlines',
+);
+
 const crawlSchema = z.object({
-  url: z.string().url('Must be a valid URL'),
+  url: z.string().url('Must be a valid URL').max(2048),
   limit: z.number().int().min(1).max(100).optional().default(10),
   maxDepth: z.number().int().min(0).max(5).optional().default(2),
-  includePaths: z.array(z.string()).max(20).optional(),
-  excludePaths: z.array(z.string()).max(20).optional(),
+  includePaths: z.array(z.string().max(200)).max(20).optional(),
+  excludePaths: z.array(z.string().max(200)).max(20).optional(),
   scrapeOptions: z.object({
     formats: z.array(z.enum(['markdown', 'html', 'rawHtml', 'screenshot', 'links', 'cms_blocks']))
       .optional()
       .default(['markdown']),
     onlyMainContent: z.boolean().optional().default(true),
+    actions: z.array(browserActionSchema).max(20).optional(),
+    headers: z.record(z.string().max(200), headerValueSchema)
+      .optional()
+      .refine(
+        (obj) => !obj || Object.keys(obj).length <= 20,
+        'Maximum 20 headers allowed',
+      ),
+    mobile: z.boolean().optional(),
   }).optional(),
-  webhook: z.string().url().optional(),
+  webhook: z.string().url().max(2048).optional(),
+  webhookSecret: z.string().max(256).optional(),
   allowBackwardLinks: z.boolean().optional().default(false),
   ignoreSitemap: z.boolean().optional().default(false),
 });
@@ -45,32 +61,24 @@ app.post('/', authMiddleware, async (c) => {
     return c.json({ success: false, error: 'Validation failed', details: parsed.error.flatten() }, 400);
   }
 
-  const { url, limit, maxDepth, includePaths, excludePaths, scrapeOptions, webhook } = parsed.data;
+  const { url, limit, maxDepth, includePaths, excludePaths, scrapeOptions, webhook, webhookSecret } = parsed.data;
 
-  // SSRF check
-  try {
-    const parsedUrl = new URL(url);
-    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-      return c.json({ success: false, error: 'URL must use http or https protocol' }, 400);
-    }
-    if (isPrivateHost(parsedUrl.hostname)) {
-      return c.json({ success: false, error: 'Cannot crawl private or internal addresses' }, 400);
-    }
-  } catch {
-    return c.json({ success: false, error: 'Invalid URL' }, 400);
+  // SSRF check (includes DNS rebinding protection)
+  const ssrfCheck = await validateUrlNotPrivate(url);
+  if (!ssrfCheck.valid) {
+    return c.json({ success: false, error: ssrfCheck.error ?? 'Cannot crawl this URL' }, 400);
   }
 
   // Webhook SSRF check
   if (webhook) {
-    try {
-      const parsedWebhook = new URL(webhook);
-      if (isPrivateHost(parsedWebhook.hostname)) {
-        return c.json({ success: false, error: 'Webhook URL cannot target private addresses' }, 400);
-      }
-    } catch {
-      return c.json({ success: false, error: 'Invalid webhook URL' }, 400);
+    const webhookCheck = await validateUrlNotPrivate(webhook);
+    if (!webhookCheck.valid) {
+      return c.json({ success: false, error: webhookCheck.error ?? 'Invalid webhook URL' }, 400);
     }
   }
+
+  // Ensure credits are loaded from Cosmos
+  await ensureHydrated(auth.accountId);
 
   // Check credits
   const credits = checkCredits(auth.accountId);
@@ -81,7 +89,7 @@ app.post('/', authMiddleware, async (c) => {
   const formats = (scrapeOptions?.formats ?? ['markdown']) as ScrapeFormat[];
 
   try {
-    const jobId = enqueue(auth.accountId, url, {
+    const jobId = await enqueue(auth.accountId, url, {
       ...DEFAULT_CRAWL_OPTIONS,
       maxPages: limit,
       maxDepth,
@@ -90,7 +98,10 @@ app.post('/', authMiddleware, async (c) => {
       formats,
       allowedPatterns: includePaths,
       blockedPatterns: excludePaths,
-    }, webhook);
+      actions: scrapeOptions?.actions,
+      headers: scrapeOptions?.headers,
+      mobile: scrapeOptions?.mobile,
+    }, webhook, webhookSecret);
 
     return c.json({
       success: true,
@@ -98,8 +109,8 @@ app.post('/', authMiddleware, async (c) => {
       url: `https://api.theonecrawl.app/v1/crawl/${jobId}`,
     }, 201);
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Failed to start crawl';
-    return c.json({ success: false, error: message }, 503);
+    logger.error('Crawl start failed', { error: err instanceof Error ? err.message : String(err) });
+    return c.json({ success: false, error: 'Failed to start crawl' }, 503);
   }
 });
 
@@ -175,7 +186,7 @@ app.delete('/:id', authMiddleware, async (c) => {
 app.get('/:id/cms-blocks', authMiddleware, async (c) => {
   const auth = getAuth(c);
   const jobId = c.req.param('id');
-  const pageIndex = parseInt(c.req.query('page') || '0', 10);
+  const pageIndex = Math.max(0, parseInt(c.req.query('page') || '0', 10) || 0);
   const job = getJob(jobId);
 
   if (!job || job.accountId !== auth.accountId) {

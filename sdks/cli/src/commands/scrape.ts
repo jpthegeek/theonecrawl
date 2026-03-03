@@ -9,6 +9,8 @@ interface ScrapeOptions {
   timeout?: string;
   json?: boolean;
   mainContent?: boolean;
+  mobile?: boolean;
+  header?: string[];
 }
 
 export async function scrapeCommand(url: string, opts: ScrapeOptions): Promise<void> {
@@ -23,10 +25,25 @@ export async function scrapeCommand(url: string, opts: ScrapeOptions): Promise<v
   try {
     const client = new TheOneCrawl({ apiKey, apiUrl: getApiUrl() });
     const formats = opts.format ? opts.format.split(',') as ScrapeFormat[] : undefined;
+
+    // Parse --header KEY:VALUE flags
+    let headers: Record<string, string> | undefined;
+    if (opts.header && opts.header.length > 0) {
+      headers = {};
+      for (const h of opts.header) {
+        const idx = h.indexOf(':');
+        if (idx > 0) {
+          headers[h.slice(0, idx).trim()] = h.slice(idx + 1).trim();
+        }
+      }
+    }
+
     const result = await client.scrapeUrl(url, {
       formats,
       onlyMainContent: opts.mainContent,
       timeout: opts.timeout ? parseInt(opts.timeout, 10) : undefined,
+      mobile: opts.mobile,
+      headers,
     });
 
     spinner.stop();

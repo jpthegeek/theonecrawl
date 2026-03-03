@@ -53,7 +53,32 @@ export const STRIPE_PRICE_IDS: Record<string, string> = {
   enterprise: process.env['STRIPE_PRICE_ENTERPRISE'] || 'price_enterprise',
 };
 
+// Reverse map: Stripe price ID → plan name
+export const PRICE_TO_PLAN: Record<string, string> = Object.fromEntries(
+  Object.entries(STRIPE_PRICE_IDS).map(([plan, priceId]) => [priceId, plan]),
+);
+
 // Domains
 export const API_DOMAIN = 'api.theonecrawl.app';
 export const APP_DOMAIN = 'app.theonecrawl.app';
 export const ROOT_DOMAIN = 'theonecrawl.app';
+
+// Abuse detection thresholds (runtime-updatable via Redis abuse:config)
+export const DEFAULT_ABUSE_THRESHOLDS = {
+  credential_stuffing: { count: 20, windowSeconds: 3600, weight: 30 },
+  velocity_spike: { multiplier: 5, windowSeconds: 3600, weight: 15 },
+  credit_burn: { percentThreshold: 50, windowSeconds: 3600, weight: 20 },
+  coordinated_targeting: { count: 5, windowSeconds: 3600, weight: 25 },
+  webhook_flood: { count: 100, windowSeconds: 3600, weight: 35 },
+  signup_abuse: { count: 3, windowSeconds: 86400, weight: 25 },
+  key_compromise: { count: 10, windowSeconds: 3600, weight: 20 },
+} as const;
+
+export const ABUSE_SCORE_THRESHOLDS = {
+  warned: 30,
+  throttled: 60,
+  suspended: 80,
+  banned: 100,
+} as const;
+
+export const ABUSE_SCORE_DECAY_PER_HOUR = 5;

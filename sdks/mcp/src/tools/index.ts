@@ -6,6 +6,7 @@ import { mapTool } from './map.js';
 import { extractTool } from './extract.js';
 import { cmsBlocksTool } from './cms-blocks.js';
 import { designSystemTool } from './design-system.js';
+import { batchScrapeTool } from './batch-scrape.js';
 
 export interface ToolDef {
   name: string;
@@ -20,6 +21,7 @@ export const allTools: ToolDef[] = [
   crawlStatusTool,
   mapTool,
   extractTool,
+  batchScrapeTool,
   cmsBlocksTool,
   designSystemTool,
 ];

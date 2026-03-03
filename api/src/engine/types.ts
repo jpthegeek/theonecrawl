@@ -3,9 +3,11 @@
 // ---------------------------------------------------------------------------
 
 import type { CmsBlock, WebsiteTheme } from './cms-types.js';
+import type { BrowserAction, ActionResult } from './actions.js';
 
 // Re-export CMS types for consumers
 export type { CmsBlock, WebsiteTheme };
+export type { BrowserAction, ActionResult };
 
 // ---------------------------------------------------------------------------
 // Crawl job lifecycle
@@ -29,6 +31,9 @@ export interface CrawlJob {
   error?: string;
   progress?: CrawlProgress;
   webhookUrl?: string;
+  webhookSecret?: string;
+  /** If true, credits were already consumed at enqueue time (batch jobs) */
+  creditsPrepaid?: boolean;
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
@@ -72,10 +77,18 @@ export interface CrawlOptions {
   onlyMainContent?: boolean;
   /** Output formats */
   formats?: ScrapeFormat[];
+  /** Wait for timeout (ms) or CSS selector after page load */
+  waitFor?: number | string;
   /** HTML tags to include */
   includeTags?: string[];
   /** HTML tags to exclude */
   excludeTags?: string[];
+  /** Browser actions to execute after page load */
+  actions?: BrowserAction[];
+  /** Custom HTTP headers to send with the request */
+  headers?: Record<string, string>;
+  /** Emulate mobile device (390x844 viewport + mobile UA) */
+  mobile?: boolean;
 }
 
 export type ScrapeFormat =
@@ -128,6 +141,7 @@ export interface PageResult {
   screenshot?: string;
   extractedContent: ExtractedContent;
   cmsBlocks?: CmsBlock[];
+  actionResults?: ActionResult[];
   statusCode: number;
   loadTimeMs: number;
 }
@@ -357,6 +371,8 @@ export interface ScrapeResponse {
     };
     cms_blocks?: CmsBlock[];
     designSystem?: Partial<WebsiteTheme>;
+    actions?: ActionResult[];
+    extract?: unknown;
   };
 }
 

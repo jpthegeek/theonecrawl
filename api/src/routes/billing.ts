@@ -9,7 +9,9 @@ import { cosmosQuery, cosmosUpsert, isCosmosConfigured } from '../shared/cosmos.
 import { setPlan } from '../billing/credits.js';
 import type { AccountRecord } from '../auth/api-keys.js';
 import type { CrawlPlan } from '../engine/types.js';
-import { STRIPE_PRICE_IDS } from '../shared/constants.js';
+import { STRIPE_PRICE_IDS, PRICE_TO_PLAN } from '../shared/constants.js';
+import { sendPaymentFailedEmail } from '../shared/email.js';
+import { logger } from '../shared/logger.js';
 
 export const billingRoutes = new Hono();
 
@@ -164,6 +166,66 @@ billingRoutes.post('/webhook', async (c) => {
             updated_at: new Date().toISOString(),
           });
         }
+      }
+    }
+  }
+
+  if (event.type === 'invoice.payment_failed') {
+    const invoice = event.data.object as Stripe.Invoice;
+    const customerId = invoice.customer as string;
+    if (customerId) {
+      try {
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+        const accountId = customer.metadata?.['accountId'];
+        if (accountId && isCosmosConfigured()) {
+          const accounts = await cosmosQuery<AccountRecord>(
+            'accounts',
+            'SELECT * FROM c WHERE c.id = @id AND c.type = "account"',
+            [{ name: '@id', value: accountId }],
+          );
+          const account = accounts[0];
+          if (account) {
+            void sendPaymentFailedEmail(account.email, account.plan);
+          }
+        }
+      } catch (err) {
+        logger.error('Failed to handle payment_failed webhook', {
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+  }
+
+  if (event.type === 'customer.subscription.updated') {
+    const sub = event.data.object as Stripe.Subscription;
+    const priceId = sub.items.data[0]?.price?.id;
+    const newPlan = priceId ? PRICE_TO_PLAN[priceId] : undefined;
+    if (newPlan) {
+      try {
+        const customer = await stripe.customers.retrieve(sub.customer as string) as Stripe.Customer;
+        const accountId = customer.metadata?.['accountId'];
+        if (accountId) {
+          setPlan(accountId, newPlan as CrawlPlan);
+          if (isCosmosConfigured()) {
+            const accounts = await cosmosQuery<AccountRecord>(
+              'accounts',
+              'SELECT * FROM c WHERE c.id = @id AND c.type = "account"',
+              [{ name: '@id', value: accountId }],
+            );
+            const account = accounts[0];
+            if (account) {
+              await cosmosUpsert('accounts', {
+                ...account,
+                plan: newPlan,
+                updated_at: new Date().toISOString(),
+              });
+            }
+          }
+        }
+      } catch (err) {
+        logger.error('Failed to handle subscription.updated webhook', {
+          error: err instanceof Error ? err.message : String(err),
+        });
       }
     }
   }
