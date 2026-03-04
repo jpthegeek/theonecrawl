@@ -1,0 +1,147 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'  # Nightly at 6 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/javascript
+            p/typescript
+            p/nodejs
+            p/owasp-top-ten
+            .semgrep/
+        env:
+          SEMGREP_RULES: p/javascript p/typescript p/nodejs p/owasp-top-ten .semgrep/
+          SEMGREP_OUTPUT_FORMAT: json
+          SEMGREP_OUTPUT_FILE: semgrep-results.json
+
+      - name: POST SAST results
+        if: always()
+        env:
+          PLATFORM: crawl
+        run: |
+          if [ ! -f semgrep-results.json ]; then
+            PAYLOAD=$(jq -n \
+              --arg type "sast" \
+              --arg platform "$PLATFORM" \
+              --arg repo "$GITHUB_REPOSITORY" \
+              --arg branch "$GITHUB_REF_NAME" \
+              --arg commit "$GITHUB_SHA" \
+              '{type: $type, platform: $platform, repo: $repo, branch: $branch, commit_sha: $commit, source: "github_actions", findings: []}')
+          else
+            PAYLOAD=$(jq -r --arg platform "$PLATFORM" --arg repo "$GITHUB_REPOSITORY" \
+              --arg branch "$GITHUB_REF_NAME" --arg commit "$GITHUB_SHA" '
+            {
+              type: "sast",
+              platform: $platform,
+              repo: $repo,
+              branch: $branch,
+              commit_sha: $commit,
+              source: "github_actions",
+              findings: [.results[]? | {
+                severity: (if .extra.severity == "ERROR" then "high"
+                           elif .extra.severity == "WARNING" then "medium"
+                           else "low" end),
+                title: .check_id,
+                description: (.extra.message // ""),
+                file_path: .path,
+                line_number: .start.line,
+                code_snippet: (.extra.lines // ""),
+                cwe_id: (.extra.metadata.cwe[0]? // null),
+                owasp_category: (.extra.metadata.owasp[0]? // null),
+                rule_id: .check_id,
+                category: (
+                  if (.check_id | test("injection|sqli"; "i")) then "injection"
+                  elif (.check_id | test("xss|cross.site"; "i")) then "xss"
+                  elif (.check_id | test("auth"; "i")) then "auth"
+                  elif (.check_id | test("crypto|tls|ssl"; "i")) then "crypto"
+                  elif (.check_id | test("ssrf"; "i")) then "ssrf"
+                  elif (.check_id | test("deseriali"; "i")) then "deserialization"
+                  elif (.check_id | test("log"; "i")) then "logging"
+                  else "other" end
+                )
+              }]
+            }' semgrep-results.json)
+          fi
+
+          echo "Posting $(echo "$PAYLOAD" | jq '.findings | length') SAST findings..."
+          curl -s -o /dev/null -w "HTTP %{http_code}" \
+            -X POST "https://ops-center-api.azurewebsites.net/api/webhook/appsec" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: ${{ secrets.APPSEC_WEBHOOK_KEY }}" \
+            -d "$PAYLOAD" --max-time 30
+
+  sca:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Grype SCA scan
+        uses: anchore/scan-action@v4
+        id: grype
+        with:
+          path: "."
+          output-format: json
+          fail-build: "false"
+
+      - name: POST SCA results
+        if: always()
+        env:
+          PLATFORM: crawl
+        run: |
+          GRYPE_FILE="${{ steps.grype.outputs.json }}"
+          [ ! -f "$GRYPE_FILE" ] && GRYPE_FILE="results.json"
+
+          if [ ! -f "$GRYPE_FILE" ]; then
+            PAYLOAD=$(jq -n \
+              --arg type "sca" \
+              --arg platform "$PLATFORM" \
+              --arg repo "$GITHUB_REPOSITORY" \
+              --arg branch "$GITHUB_REF_NAME" \
+              --arg commit "$GITHUB_SHA" \
+              '{type: $type, platform: $platform, repo: $repo, branch: $branch, commit_sha: $commit, source: "github_actions", findings: []}')
+          else
+            PAYLOAD=$(jq -r --arg platform "$PLATFORM" --arg repo "$GITHUB_REPOSITORY" \
+              --arg branch "$GITHUB_REF_NAME" --arg commit "$GITHUB_SHA" '
+            {
+              type: "sca",
+              platform: $platform,
+              repo: $repo,
+              branch: $branch,
+              commit_sha: $commit,
+              source: "github_actions",
+              findings: [.matches[]? | {
+                severity: (.vulnerability.severity // "unknown" | ascii_downcase),
+                title: (.vulnerability.id // "unknown"),
+                description: (.vulnerability.description // ""),
+                file_path: (.artifact.locations[0]?.path // null),
+                cwe_id: (.vulnerability.cwe[0]? // null),
+                rule_id: (.vulnerability.id // ""),
+                category: "supply_chain"
+              }]
+            }' "$GRYPE_FILE")
+          fi
+
+          echo "Posting $(echo "$PAYLOAD" | jq '.findings | length') SCA findings..."
+          curl -s -o /dev/null -w "HTTP %{http_code}" \
+            -X POST "https://ops-center-api.azurewebsites.net/api/webhook/appsec" \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: ${{ secrets.APPSEC_WEBHOOK_KEY }}" \
+            -d "$PAYLOAD" --max-time 30

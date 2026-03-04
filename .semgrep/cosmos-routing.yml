@@ -1,0 +1,35 @@
+rules:
+  - id: cosmos-routing-tenant-id-in-system-query
+    patterns:
+      - pattern: |
+          queryDocuments('config', $QUERY, [..., { name: '@tenantId', value: $VAL }, ...])
+      - focus-metavariable: $QUERY
+    message: >
+      Using @tenantId parameter in a config container query. The config container is system-scoped
+      and does not use tenant routing. Use @tid or another parameter name to avoid unintended
+      database routing.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      subcategory: data-routing
+      cwe: "CWE-639: Authorization Bypass Through User-Controlled Key"
+
+  - id: cosmos-routing-direct-container-access
+    patterns:
+      - pattern: |
+          $DB.container($NAME).$OP(...)
+      - pattern-not-inside: |
+          cosmosQuery(...)
+      - pattern-not-inside: |
+          cosmosCreate(...)
+      - pattern-not-inside: |
+          cosmosUpsert(...)
+    message: >
+      Direct container access bypasses multi-database routing logic. Use cosmosQuery/cosmosCreate/
+      cosmosUpsert helpers which handle tenant-aware routing automatically.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      subcategory: data-routing

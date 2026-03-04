@@ -1,0 +1,52 @@
+rules:
+  - id: multi-tenant-bypass-missing-tenant-check
+    patterns:
+      - pattern: |
+          async function $HANDLER($REQ, $CTX, $USER) {
+            ...
+            $DB.container($CONTAINER).$OP(...)
+            ...
+          }
+      - pattern-not: |
+          async function $HANDLER($REQ, $CTX, $USER) {
+            ...
+            $USER.tenantId
+            ...
+          }
+    message: >
+      Handler accesses a Cosmos container without checking user.tenantId.
+      All tenant-scoped operations must validate the tenant context to prevent cross-tenant data access.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      subcategory: multi-tenant-isolation
+      cwe: "CWE-639: Authorization Bypass Through User-Controlled Key"
+      owasp: "A01:2021 - Broken Access Control"
+
+  - id: multi-tenant-bypass-hardcoded-tenant
+    pattern: |
+      queryDocuments($CONTAINER, $QUERY, [{..., value: "...-...-...-...-..." }])
+    message: >
+      Hardcoded tenant ID in query parameter. Use the authenticated user's tenantId instead.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      subcategory: multi-tenant-isolation
+
+  - id: multi-tenant-bypass-unscoped-query
+    patterns:
+      - pattern: |
+          queryDocuments($CONTAINER, $QUERY)
+      - metavariable-regex:
+          metavariable: $QUERY
+          regex: '^"SELECT.*FROM c WHERE(?!.*tenant).*"$'
+    message: >
+      Query on a tenant-scoped container without tenant filter.
+      Ensure queries include a tenant_id or platform filter to prevent data leakage.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      subcategory: multi-tenant-isolation

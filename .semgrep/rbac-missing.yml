@@ -1,0 +1,34 @@
+rules:
+  - id: rbac-missing-auth-on-handler
+    patterns:
+      - pattern: |
+          createHandler(async ($REQ, $CTX, $USER) => { ... }, { ... })
+      - pattern-not: |
+          createHandler(async ($REQ, $CTX, $USER) => { ... }, { requireAuth: true, ... })
+    message: >
+      HTTP handler created without requireAuth: true. All endpoints must require authentication
+      unless explicitly designed for public access.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      subcategory: authentication
+      cwe: "CWE-306: Missing Authentication for Critical Function"
+      owasp: "A07:2021 - Identification and Authentication Failures"
+
+  - id: rbac-missing-role-check
+    patterns:
+      - pattern: |
+          createHandler($FN, { requireAuth: true })
+      - pattern-not: |
+          createHandler($FN, { requireAuth: true, allowedRoles: $ROLES, ... })
+    message: >
+      Handler requires auth but does not specify allowedRoles. Consider adding role-based
+      access control for sensitive operations.
+    languages: [typescript, javascript]
+    severity: WARNING
+    metadata:
+      category: security
+      subcategory: authorization
+      cwe: "CWE-862: Missing Authorization"
+      owasp: "A01:2021 - Broken Access Control"
