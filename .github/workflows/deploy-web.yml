@@ -8,6 +8,10 @@ on:
       - ".github/workflows/deploy-web.yml"
   workflow_dispatch:
 
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -25,6 +29,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Type check
+        run: pnpm --filter @theonecrawl/web typecheck
 
       - name: Build web
         run: pnpm --filter @theonecrawl/web build
