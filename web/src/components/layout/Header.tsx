@@ -1,22 +1,24 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { BirdSymbol } from '@/components/BirdSymbol';
 import { Button } from '@/components/ui/Button';
 
 export function Header() {
   const { account } = useAuth();
 
   return (
-    <header className="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm sticky top-0 z-50">
+    <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-background/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center gap-8">
-          <Link to="/" className="text-xl font-bold text-brand-600">
-            TheOneCrawl
+          <Link to="/" className="flex items-center gap-2">
+            <BirdSymbol className="h-[18px] w-[18px] text-orange-500" />
+            <span className="font-semibold text-sm text-foreground">The One Crawl</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm">
-            <Link to="/pricing" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+            <Link to="/pricing" className="text-muted-foreground hover:text-foreground transition-colors">
               Pricing
             </Link>
-            <Link to="/docs" className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+            <Link to="/docs" className="text-muted-foreground hover:text-foreground transition-colors">
               Docs
             </Link>
           </nav>

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { MarketingLayout } from '@/components/layout/MarketingLayout';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { LandingPage } from '@/pages/LandingPage';
 import { PricingPage } from '@/pages/PricingPage';
@@ -36,6 +37,10 @@ export function App() {
               <Route path="/" element={<LandingPage />} />
               <Route path="/pricing" element={<PricingPage />} />
               <Route path="/docs" element={<DocsPage />} />
+            </Route>
+
+            {/* Auth — full-page, no header/footer */}
+            <Route element={<AuthLayout />}>
               <Route path="/login" element={<LoginForm />} />
               <Route path="/register" element={<RegisterForm />} />
               <Route path="/forgot-password" element={<ForgotPasswordForm />} />

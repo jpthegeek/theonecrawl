@@ -16,7 +16,7 @@ export function Sidebar() {
   const location = useLocation();
 
   return (
-    <aside className="w-64 border-r border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 min-h-[calc(100vh-4rem)]">
+    <aside className="w-64 border-r border-white/[0.06] bg-card/30 backdrop-blur-md min-h-[calc(100vh-4rem)]">
       <nav className="p-4 space-y-1">
         {navItems.map(({ to, icon: Icon, label }) => {
           const active = location.pathname === to;
@@ -27,8 +27,8 @@ export function Sidebar() {
               className={clsx(
                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                 active
-                  ? 'bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300'
-                  : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+                  ? 'bg-primary/10 border border-primary/20 text-primary'
+                  : 'border border-transparent text-muted-foreground hover:bg-white/[0.04] hover:text-foreground',
               )}
             >
               <Icon className="h-4 w-4" />

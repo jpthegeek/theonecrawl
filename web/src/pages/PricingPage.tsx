@@ -25,7 +25,7 @@ const faqs = [
   },
   {
     q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel anytime from the billing page. You\'ll keep your plan until the end of the billing period.',
+    a: "Yes. Cancel anytime from the billing page. You'll keep your plan until the end of the billing period.",
   },
 ];
 
@@ -36,8 +36,8 @@ export function PricingPage() {
     <div className="py-16">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold">Simple, transparent pricing</h1>
-          <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+          <h1 className="text-4xl font-bold text-foreground">Simple, transparent pricing</h1>
+          <p className="mt-4 text-lg text-muted-foreground">
             Start free. Scale as you grow.
           </p>
         </div>
@@ -45,22 +45,22 @@ export function PricingPage() {
         {/* Plans */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {plans.map((plan) => (
-            <Card key={plan.id} className={plan.highlighted ? 'ring-2 ring-brand-500' : ''}>
+            <Card key={plan.id} className={plan.highlighted ? 'ring-2 ring-primary' : ''}>
               <CardContent className="py-8 space-y-6">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-xl">{plan.name}</h3>
+                    <h3 className="font-semibold text-xl text-foreground">{plan.name}</h3>
                     {plan.highlighted && <Badge variant="success">Popular</Badge>}
                   </div>
-                  <p className="text-4xl font-bold mt-3">
-                    ${plan.price}<span className="text-lg font-normal text-gray-500">/mo</span>
+                  <p className="text-4xl font-bold mt-3 text-foreground">
+                    ${plan.price}<span className="text-lg font-normal text-muted-foreground">/mo</span>
                   </p>
                 </div>
                 <ul className="space-y-3 text-sm">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2">
-                      <span className="text-green-500 mt-0.5">&#10003;</span>
-                      <span className="text-gray-600 dark:text-gray-400">{f}</span>
+                      <span className="text-primary mt-0.5">&#10003;</span>
+                      <span className="text-muted-foreground">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -79,22 +79,22 @@ export function PricingPage() {
 
         {/* FAQ */}
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold text-center mb-8">Frequently asked questions</h2>
+          <h2 className="text-2xl font-bold text-center mb-8 text-foreground">Frequently asked questions</h2>
           <div className="space-y-2">
             {faqs.map((faq, i) => (
               <div
                 key={i}
-                className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden"
+                className="border border-white/[0.06] rounded-lg overflow-hidden"
               >
                 <button
-                  className="w-full flex items-center justify-between px-4 py-3 text-left font-medium hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                  className="w-full flex items-center justify-between px-4 py-3 text-left font-medium text-foreground hover:bg-white/[0.04] transition-colors"
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
                 >
                   {faq.q}
                   {openFaq === i ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                 </button>
                 {openFaq === i && (
-                  <div className="px-4 pb-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="px-4 pb-3 text-sm text-muted-foreground">
                     {faq.a}
                   </div>
                 )}
