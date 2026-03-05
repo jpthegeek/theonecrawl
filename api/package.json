@@ -12,7 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
+    "@theone/ai-gateway": "file:../../theoneaiplatform/packages/ai-gateway",
     "@aws-sdk/client-sesv2": "^3.500.0",
     "@azure/cosmos": "^4.2.0",
     "@azure/identity": "^4.0.0",

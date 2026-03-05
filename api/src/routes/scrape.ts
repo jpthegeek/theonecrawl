@@ -11,7 +11,7 @@ import { crawlWebsite } from '../engine/crawler.js';
 import { toMarkdown } from '../engine/markdown-converter.js';
 import { validateUrlNotPrivate } from '../shared/ssrf.js';
 import { browserActionSchema } from '../engine/actions.js';
-import { getAnthropicClient } from '../shared/anthropic.js';
+import { getGateway, CLAUDE_MODEL } from '../shared/anthropic.js';
 import { logger } from '../shared/logger.js';
 import { trackCreditConsumption } from '../auth/abuse-detection.js';
 import type { ScrapeResponse, ScrapeFormat } from '../engine/types.js';
@@ -166,8 +166,8 @@ app.post('/', authMiddleware, async (c) => {
           // Consume credits before LLM call to prevent free usage on crash
           const extractConsumed = consumeCredits(auth.accountId, CREDIT_COSTS.ai_extract);
           if (extractConsumed >= CREDIT_COSTS.ai_extract) {
-          const anthropic = getAnthropicClient();
-          if (anthropic) {
+          const gateway = getGateway();
+          if (gateway) {
             try {
               const pageMarkdown = data.markdown ?? toMarkdown(page.extractedContent, { onlyMainContent });
               const systemPrompt = extract.schema
@@ -175,15 +175,17 @@ app.post('/', authMiddleware, async (c) => {
                 : 'Extract structured data from the web page content. Return valid JSON.';
               const userPrompt = `${extract.prompt ?? 'Extract the key information.'}\n\n${pageMarkdown.slice(0, 30_000)}`;
 
-              const message = await anthropic.messages.create({
-                model: 'claude-sonnet-4-20250514',
-                max_tokens: 4096,
+              const aiResponse = await gateway.chat({
+                tenantId: auth.accountId,
+                feature: 'scrape-extract',
+                provider: 'anthropic',
                 system: systemPrompt,
                 messages: [{ role: 'user', content: userPrompt }],
+                model: CLAUDE_MODEL,
+                maxTokens: 4096,
               });
 
-              const textContent = message.content.find((b) => b.type === 'text');
-              const raw = textContent?.text ?? '';
+              const raw = aiResponse.content;
               try {
                 const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/) ?? [null, raw];
                 data.extract = JSON.parse(jsonMatch[1]?.trim() ?? raw);

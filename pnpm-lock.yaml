@@ -10,9 +10,6 @@ importers:
 
   api:
     dependencies:
-      '@anthropic-ai/sdk':
-        specifier: ^0.39.0
-        version: 0.39.0
       '@aws-sdk/client-sesv2':
         specifier: ^3.500.0
         version: 3.1000.0
@@ -25,6 +22,9 @@ importers:
       '@hono/node-server':
         specifier: ^1.8.0
         version: 1.19.10(hono@4.12.4)
+      '@theone/ai-gateway':
+        specifier: file:../../theoneaiplatform/packages/ai-gateway
+        version: file:../theoneaiplatform/packages/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)
       cheerio:
         specifier: ^1.0.0
         version: 1.2.0
@@ -1542,6 +1542,11 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
+  '@theone/ai-gateway@file:../theoneaiplatform/packages/ai-gateway':
+    resolution: {directory: ../theoneaiplatform/packages/ai-gateway, type: directory}
+    peerDependencies:
+      '@azure/identity': ^4.0.0
+
   '@tokenizer/inflate@0.2.7':
     resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
     engines: {node: '>=18'}
@@ -2984,6 +2989,18 @@ packages:
   open@10.2.0:
     resolution: {integrity: sha512-YgBpdJHPyQ2UE5x+hlSXcnejzAvD0b22U2OuAP+8OnlJT+PjWPxtgmGqKKc+RgTM63U9gN0YzrYc71R2WT/hTA==}
     engines: {node: '>=18'}
+
+  openai@4.104.0:
+    resolution: {integrity: sha512-p99EFNsA/yX6UhVO93f5kJsDRLAg+CTA2RBqdHK4RtK8u5IJw32Hyb2dTGKbnnFmnuoBv5r7Z2CURI9sGZpSuA==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
 
   ora@5.4.1:
     resolution: {integrity: sha512-5b6Y85tPxZZ7QytO+BQzysW31HJku27cRIlkbAXaNx+BdcVi+LlRFmVXzeF6a7JCwJpyw5c4b+YSVImQIrBpuQ==}
@@ -5622,6 +5639,18 @@ snapshots:
       '@tanstack/query-core': 5.90.20
       react: 18.3.1
 
+  '@theone/ai-gateway@file:../theoneaiplatform/packages/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)':
+    dependencies:
+      '@anthropic-ai/sdk': 0.39.0
+      '@azure/identity': 4.13.0
+      ioredis: 5.10.0
+      openai: 4.104.0(ws@8.19.0)(zod@3.25.76)
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+      - ws
+      - zod
+
   '@tokenizer/inflate@0.2.7':
     dependencies:
       debug: 4.4.3
@@ -7143,6 +7172,21 @@ snapshots:
       define-lazy-prop: 3.0.0
       is-inside-container: 1.0.0
       wsl-utils: 0.1.0
+
+  openai@4.104.0(ws@8.19.0)(zod@3.25.76):
+    dependencies:
+      '@types/node': 18.19.130
+      '@types/node-fetch': 2.6.13
+      abort-controller: 3.0.0
+      agentkeepalive: 4.6.0
+      form-data-encoder: 1.7.2
+      formdata-node: 4.4.1
+      node-fetch: 2.7.0
+    optionalDependencies:
+      ws: 8.19.0
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - encoding
 
   ora@5.4.1:
     dependencies:

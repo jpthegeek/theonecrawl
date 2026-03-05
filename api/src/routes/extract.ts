@@ -9,7 +9,7 @@ import { getAuthFromRequest } from '../auth/sessions.js';
 import { consumeCredits, checkCredits, recordUsageEvent, ensureHydrated, refundCredits } from '../billing/credits.js';
 import { CREDIT_COSTS } from '../shared/constants.js';
 import { validateUrlNotPrivate, fetchWithSsrfProtection } from '../shared/ssrf.js';
-import { getAnthropicClient } from '../shared/anthropic.js';
+import { getGateway, CLAUDE_MODEL } from '../shared/anthropic.js';
 import { logger } from '../shared/logger.js';
 import { trackCreditConsumption } from '../auth/abuse-detection.js';
 
@@ -66,8 +66,8 @@ extractRoutes.post('/', flexAuth, async (c) => {
     }, 402);
   }
 
-  const anthropic = getAnthropicClient();
-  if (!anthropic) {
+  const gateway = getGateway();
+  if (!gateway) {
     return c.json({ success: false, error: 'AI extraction not configured (ANTHROPIC_API_KEY missing)' }, 503);
   }
 
@@ -124,22 +124,24 @@ extractRoutes.post('/', flexAuth, async (c) => {
   void trackCreditConsumption(auth.accountId, cost, credits.total);
 
   try {
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+    const aiResponse = await gateway.chat({
+      tenantId: auth.accountId,
+      feature: 'extract',
+      provider: 'anthropic',
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
+      model: CLAUDE_MODEL,
+      maxTokens: 4096,
     });
 
-    const textContent = message.content.find((b) => b.type === 'text');
     let extracted: unknown;
     try {
       // Try to parse as JSON
-      const raw = textContent?.text ?? '';
+      const raw = aiResponse.content;
       const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)```/) ?? [null, raw];
       extracted = JSON.parse(jsonMatch[1]?.trim() ?? raw);
     } catch {
-      extracted = textContent?.text ?? '';
+      extracted = aiResponse.content;
     }
 
     return c.json({
