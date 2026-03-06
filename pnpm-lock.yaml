@@ -9,6 +9,7 @@ overrides:
   '@theonefamily/audit': file:./vendor/audit
   '@theonefamily/hub-bar': file:./vendor/hub-bar
   '@theonefamily/ui': file:./vendor/ui
+  '@theone/ai-gateway': file:./vendor/ai-gateway
 
 importers:
 
@@ -29,8 +30,8 @@ importers:
         specifier: ^1.8.0
         version: 1.19.10(hono@4.12.4)
       '@theone/ai-gateway':
-        specifier: file:../../theoneaiplatform/packages/ai-gateway
-        version: file:../theoneaiplatform/packages/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)
+        specifier: file:../vendor/ai-gateway
+        version: file:vendor/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)
       '@theonefamily/audit':
         specifier: file:../vendor/audit
         version: file:vendor/audit
@@ -2202,8 +2203,8 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@theone/ai-gateway@file:../theoneaiplatform/packages/ai-gateway':
-    resolution: {directory: ../theoneaiplatform/packages/ai-gateway, type: directory}
+  '@theone/ai-gateway@file:vendor/ai-gateway':
+    resolution: {directory: vendor/ai-gateway, type: directory}
     peerDependencies:
       '@azure/identity': ^4.0.0
 
@@ -7003,7 +7004,7 @@ snapshots:
       '@tanstack/query-core': 5.90.20
       react: 19.2.4
 
-  '@theone/ai-gateway@file:../theoneaiplatform/packages/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)':
+  '@theone/ai-gateway@file:vendor/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)':
     dependencies:
       '@anthropic-ai/sdk': 0.39.0
       '@azure/identity': 4.13.0
