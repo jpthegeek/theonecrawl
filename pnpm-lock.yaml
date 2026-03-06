@@ -5,7 +5,10 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  '@theonefamily/bus-sdk': file:../theonebus/packages/bus-sdk
+  '@theonefamily/bus-sdk': file:./vendor/bus-sdk
+  '@theonefamily/audit': file:./vendor/audit
+  '@theonefamily/hub-bar': file:./vendor/hub-bar
+  '@theonefamily/ui': file:./vendor/ui
 
 importers:
 
@@ -29,11 +32,11 @@ importers:
         specifier: file:../../theoneaiplatform/packages/ai-gateway
         version: file:../theoneaiplatform/packages/ai-gateway(@azure/identity@4.13.0)(ws@8.19.0)(zod@3.25.76)
       '@theonefamily/audit':
-        specifier: file:../../ops-center/packages/audit
-        version: file:../ops-center/packages/audit
+        specifier: file:../vendor/audit
+        version: file:vendor/audit
       '@theonefamily/bus-sdk':
-        specifier: file:../../theonebus/packages/bus-sdk
-        version: file:../theonebus/packages/bus-sdk
+        specifier: file:../vendor/bus-sdk
+        version: file:vendor/bus-sdk
       cheerio:
         specifier: ^1.0.0
         version: 1.2.0
@@ -146,11 +149,11 @@ importers:
         specifier: ^5.17.0
         version: 5.90.21(react@19.2.4)
       '@theonefamily/hub-bar':
-        specifier: file:../../ops-center/packages/hub-bar
-        version: file:../ops-center/packages/hub-bar(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        specifier: file:../vendor/hub-bar
+        version: file:vendor/hub-bar(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@theonefamily/ui':
-        specifier: file:../../ops-center/packages/ui
-        version: file:../ops-center/packages/ui(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
+        specifier: file:../vendor/ui
+        version: file:vendor/ui(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)
       clsx:
         specifier: ^2.1.0
         version: 2.1.1
@@ -2204,20 +2207,20 @@ packages:
     peerDependencies:
       '@azure/identity': ^4.0.0
 
-  '@theonefamily/audit@file:../ops-center/packages/audit':
-    resolution: {directory: ../ops-center/packages/audit, type: directory}
+  '@theonefamily/audit@file:vendor/audit':
+    resolution: {directory: vendor/audit, type: directory}
 
-  '@theonefamily/bus-sdk@file:../theonebus/packages/bus-sdk':
-    resolution: {directory: ../theonebus/packages/bus-sdk, type: directory}
+  '@theonefamily/bus-sdk@file:vendor/bus-sdk':
+    resolution: {directory: vendor/bus-sdk, type: directory}
 
-  '@theonefamily/hub-bar@file:../ops-center/packages/hub-bar':
-    resolution: {directory: ../ops-center/packages/hub-bar, type: directory}
+  '@theonefamily/hub-bar@file:vendor/hub-bar':
+    resolution: {directory: vendor/hub-bar, type: directory}
     peerDependencies:
       react: '>=18.0.0'
       react-dom: '>=18.0.0'
 
-  '@theonefamily/ui@file:../ops-center/packages/ui':
-    resolution: {directory: ../ops-center/packages/ui, type: directory}
+  '@theonefamily/ui@file:vendor/ui':
+    resolution: {directory: vendor/ui, type: directory}
     peerDependencies:
       react: ^18.0.0 || ^19.0.0
       react-dom: ^18.0.0 || ^19.0.0
@@ -7012,13 +7015,13 @@ snapshots:
       - ws
       - zod
 
-  '@theonefamily/audit@file:../ops-center/packages/audit':
+  '@theonefamily/audit@file:vendor/audit':
     dependencies:
-      '@theonefamily/bus-sdk': file:../theonebus/packages/bus-sdk
+      '@theonefamily/bus-sdk': file:vendor/bus-sdk
 
-  '@theonefamily/bus-sdk@file:../theonebus/packages/bus-sdk': {}
+  '@theonefamily/bus-sdk@file:vendor/bus-sdk': {}
 
-  '@theonefamily/hub-bar@file:../ops-center/packages/hub-bar(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
+  '@theonefamily/hub-bar@file:vendor/hub-bar(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@microsoft/signalr': 8.0.17
       react: 19.2.4
@@ -7028,7 +7031,7 @@ snapshots:
       - encoding
       - utf-8-validate
 
-  '@theonefamily/ui@file:../ops-center/packages/ui(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
+  '@theonefamily/ui@file:vendor/ui(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react-router-dom@6.30.3(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react@19.2.4)':
     dependencies:
       '@radix-ui/react-alert-dialog': 1.1.15(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@radix-ui/react-avatar': 1.1.11(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)

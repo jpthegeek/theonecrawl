@@ -22,7 +22,10 @@
   },
   "pnpm": {
     "overrides": {
-      "@theonefamily/bus-sdk": "file:../theonebus/packages/bus-sdk"
+      "@theonefamily/bus-sdk": "file:./vendor/bus-sdk",
+      "@theonefamily/audit": "file:./vendor/audit",
+      "@theonefamily/hub-bar": "file:./vendor/hub-bar",
+      "@theonefamily/ui": "file:./vendor/ui"
     }
   }
 }

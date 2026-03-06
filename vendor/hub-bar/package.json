@@ -1,0 +1,41 @@
+{
+  "name": "@theonefamily/hub-bar",
+  "version": "1.0.0",
+  "description": "Shared ecosystem header for The One Stack products",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "vite build && tsc --emitDeclarationOnly --outDir dist",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit",
+    "demo": "vite --config vite.demo.config.ts"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@microsoft/signalr": "^8.0.7",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-dts": "^4.0.0"
+  },
+  "dependencies": {
+    "@microsoft/signalr": "^8.0.7"
+  }
+}
