@@ -10,6 +10,7 @@ import { CREDIT_COSTS } from '../shared/constants.js';
 import { crawlWebsite } from '../engine/crawler.js';
 import { toMarkdown } from '../engine/markdown-converter.js';
 import { validateUrlNotPrivate } from '../shared/ssrf.js';
+import { auditLog } from '../shared/audit.js';
 import { browserActionSchema } from '../engine/actions.js';
 import { getGateway, CLAUDE_MODEL } from '../shared/anthropic.js';
 import { logger } from '../shared/logger.js';
@@ -207,6 +208,7 @@ app.post('/', authMiddleware, async (c) => {
       }
     }
 
+    auditLog({ tenantId: auth.accountId, actorId: auth.accountId, actorEmail: '', action: 'page.scrape', actionCategory: 'data_access', entityType: 'url', entityId: url, metadata: { formats } });
     return c.json({ success: true, data } satisfies ScrapeResponse);
   } catch (err) {
     // Refund the credit consumed before the crawl

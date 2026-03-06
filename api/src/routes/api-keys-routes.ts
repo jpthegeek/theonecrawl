@@ -8,6 +8,7 @@ import { getSession } from '../auth/sessions.js';
 import { createApiKey, revokeApiKey, listApiKeys } from '../auth/api-keys.js';
 const MAX_API_KEYS_PER_ACCOUNT = 10;
 import { getAuthFromRequest } from '../auth/sessions.js';
+import { auditLog } from '../shared/audit.js';
 
 export const apiKeysRoutes = new Hono();
 
@@ -61,6 +62,8 @@ apiKeysRoutes.post('/', async (c) => {
 
   const { key, record } = await createApiKey(session.accountId, parsed.data.name, parsed.data.environment);
 
+  auditLog({ tenantId: session.accountId, actorId: session.accountId, actorEmail: session.email, action: 'api_key.create', actionCategory: 'config', entityType: 'api_key', entityId: record.id, entityName: record.name });
+
   // Return the full key only on creation — never again
   return c.json({
     success: true,
@@ -89,6 +92,8 @@ apiKeysRoutes.delete('/:id', async (c) => {
   if (!revoked) {
     return c.json({ success: false, error: 'API key not found' }, 404);
   }
+
+  auditLog({ tenantId: session.accountId, actorId: session.accountId, actorEmail: session.email, action: 'api_key.delete', actionCategory: 'config', entityType: 'api_key', entityId: keyId, entityName: keyId });
 
   return c.json({ success: true });
 });

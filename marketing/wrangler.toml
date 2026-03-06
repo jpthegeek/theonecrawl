@@ -1,0 +1,8 @@
+name = "theonecrawl-marketing"
+main = "worker.js"
+compatibility_date = "2024-01-01"
+account_id = "d06dd65a19b0bb365ee89e0adb8dfed7"
+
+[[routes]]
+pattern = "theonecrawl.app/*"
+zone_name = "theonecrawl.app"

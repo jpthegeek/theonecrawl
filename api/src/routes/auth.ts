@@ -13,6 +13,8 @@ import { logger } from '../shared/logger.js';
 import { extractClientIp } from '../shared/request-utils.js';
 import { trackLoginFailure, trackRegistration } from '../auth/abuse-detection.js';
 import type { AccountRecord } from '../auth/api-keys.js';
+import { emitLoginSuccess, emitLoginFailed } from '@theonefamily/bus-sdk';
+import { auditLog } from '../shared/audit.js';
 
 export const authRoutes = new Hono();
 
@@ -212,6 +214,7 @@ authRoutes.post('/login', async (c) => {
     await verifyPassword(password, 'deadbeefdeadbeefdeadbeefdeadbeef:' + '00'.repeat(64));
     recordFailedLogin(email);
     void trackLoginFailure(extractClientIp(c), email);
+    emitLoginFailed({ source: 'crawl', tenant_id: email, email, auth_method: 'password', ip: extractClientIp(c), user_agent: c.req.header('user-agent') || '', failure_reason: 'user_not_found' }).catch(() => {});
     return c.json({ success: false, error: 'Invalid email or password' }, 401);
   }
 
@@ -219,11 +222,26 @@ authRoutes.post('/login', async (c) => {
   if (!valid) {
     recordFailedLogin(email);
     void trackLoginFailure(extractClientIp(c), email);
+    emitLoginFailed({ source: 'crawl', tenant_id: account.id, user_id: account.id, email, auth_method: 'password', ip: extractClientIp(c), user_agent: c.req.header('user-agent') || '', failure_reason: 'invalid_password' }).catch(() => {});
     return c.json({ success: false, error: 'Invalid email or password' }, 401);
   }
 
   // Success — clear failed attempts
   clearLoginAttempts(email);
+  emitLoginSuccess({ source: 'crawl', tenant_id: account.id, user_id: account.id, email: account.email, auth_method: 'password', ip: extractClientIp(c), user_agent: c.req.header('user-agent') || '' }).catch(() => {});
+  auditLog({
+    tenantId: account.id,
+    actorId: account.id,
+    actorEmail: account.email,
+    actorIp: extractClientIp(c) ?? null,
+    actorUserAgent: c.req.header('user-agent') ?? null,
+    action: 'auth.login',
+    actionCategory: 'auth',
+    entityType: 'account',
+    entityId: account.id,
+    entityName: account.email,
+    metadata: { auth_method: 'password' },
+  });
 
   createSession(c, { accountId: account.id, email: account.email, plan: account.plan });
 
