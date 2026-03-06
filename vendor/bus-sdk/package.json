@@ -1,16 +1,26 @@
 {
   "name": "@theonefamily/bus-sdk",
-  "version": "1.0.0",
-  "private": true,
+  "version": "0.2.0",
   "type": "module",
-  "main": "./index.js",
-  "types": "./index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./auth-events": {
+      "types": "./dist/auth-events.d.ts",
+      "import": "./dist/auth-events.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
-    "lint": "tsc --noEmit"
+    "dev": "tsc -w",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "@types/node": "^22.10.0"
   }
 }

@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "files": ["dist", "src/theme"],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -10,11 +11,11 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./theme/tokens.css": "./src/theme/tokens.css",
-    "./theme/fonts.css": "./src/theme/fonts.css"
+    "./theme/tokens.css": "./dist/theme/tokens.css",
+    "./theme/fonts.css": "./dist/theme/fonts.css"
   },
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && cp -r src/theme dist/",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit"
   },

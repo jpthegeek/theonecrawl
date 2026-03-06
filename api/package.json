@@ -12,9 +12,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@theonefamily/audit": "file:../../ops-center/packages/audit",
-    "@theonefamily/bus-sdk": "file:../../ops-center/packages/bus-sdk",
-    "@theone/ai-gateway": "file:../../theoneaiplatform/packages/ai-gateway",
+    "@theonefamily/audit": "file:../vendor/audit",
+    "@theonefamily/bus-sdk": "file:../vendor/bus-sdk",
+    "@theone/ai-gateway": "file:../vendor/ai-gateway",
     "@aws-sdk/client-sesv2": "^3.500.0",
     "@azure/cosmos": "^4.2.0",
     "@azure/identity": "^4.0.0",
