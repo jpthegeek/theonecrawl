@@ -1,7 +1,7 @@
 import { jsx as e, jsxs as p, Fragment as $ } from "react/jsx-runtime";
-import { useMemo as _, useState as h, useEffect as N, useRef as C, useCallback as w, createContext as H, useContext as F } from "react";
+import { useMemo as _, useState as h, useEffect as N, useRef as M, useCallback as w, createContext as H, useContext as F } from "react";
 import { createPortal as U } from "react-dom";
-const j = "https://my.theonefamily.app", L = [
+const R = "https://my.theonestack.com", L = [
   { id: "psa", name: "PSA", url: "https://app.theonepsa.com", icon: "briefcase", color: "#3b82f6" },
   { id: "crm", name: "CRM", url: "https://app.theonecrm.app", icon: "target", color: "#0ea5e9" },
   { id: "rmm", name: "RMM", url: "https://app.theonermm.app", icon: "monitor", color: "#14b8a6" },
@@ -12,7 +12,7 @@ const j = "https://my.theonefamily.app", L = [
   { id: "voice", name: "Voice", url: "https://app.theonevoice.app", icon: "phone", color: "#06b6d4" },
   { id: "ai-studio", name: "AI Studio", url: "https://app.theonestudio.app", icon: "sparkles", color: "#6366f1" },
   { id: "livekit", name: "LiveKit", url: "https://live.theonelivekit.app", icon: "video", color: "#2563eb" },
-  { id: "chms", name: "CHMS", url: "https://app.theonechms.com", icon: "church", color: "#10b981" },
+  { id: "mission", name: "Mission", url: "https://app.theonemission.app", icon: "heart", color: "#e11d48" },
   { id: "ams", name: "AMS", url: "https://app.theoneams.com", icon: "building-2", color: "#f59e0b" },
   { id: "fleet", name: "Fleet", url: "https://app.theonefleet.app", icon: "truck", color: "#10b981" },
   { id: "people", name: "People", url: "https://app.theonepeople.app", icon: "users", color: "#f43f5e" },
@@ -24,14 +24,16 @@ const j = "https://my.theonefamily.app", L = [
   { id: "crawl", name: "Crawl", url: "https://crawl.theonestack.com", icon: "search", color: "#f97316" },
   { id: "portal", name: "Portal", url: "https://app.theoneportal.app", icon: "globe", color: "#ec4899" },
   { id: "bridge", name: "Bridge", url: "https://app.theonebridge.app", icon: "arrow-left-right", color: "#f97316" },
-  { id: "hub", name: "Hub", url: "https://my.theonefamily.app", icon: "layout-grid", color: "#8b5cf6" },
+  { id: "canvas", name: "Canvas", url: "https://app.theonecanvas.app", icon: "pen-tool", color: "#f59e0b" },
+  { id: "mission", name: "Mission", url: "https://app.theonemission.app", icon: "heart", color: "#a855f7" },
+  { id: "hub", name: "Hub", url: "https://my.theonestack.com", icon: "layout-grid", color: "#8b5cf6" },
   { id: "ops-center", name: "Ops Center", url: "https://theoneops.app", icon: "activity", color: "#818cf8" }
-], K = {
+], j = {
   info: "#60a5fa",
   success: "#34d399",
   warning: "#fbbf24",
   error: "#f87171"
-}, q = 48, D = `
+}, K = 48, q = `
   .hb-root {
     all: initial;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -118,7 +120,7 @@ const j = "https://my.theonefamily.app", L = [
     box-shadow: 0 16px 48px rgba(0,0,0,0.6);
     z-index: 10000;
     padding: 16px;
-    animation: hb-fade-in 0.12s ease;
+    animation: hb-panel-slide 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
   }
   .hb-waffle-header {
     font-size: 13px;
@@ -152,9 +154,15 @@ const j = "https://my.theonefamily.app", L = [
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .hb-waffle-tile:hover .hb-waffle-tile-icon {
+    transform: scale(1.08);
+    box-shadow: 0 0 16px currentColor;
   }
   .hb-waffle-tile-icon.current {
     box-shadow: 0 0 0 2px currentColor;
+    animation: hb-tile-pulse 2s ease-in-out infinite;
   }
   .hb-waffle-tile-name {
     font-size: 11px;
@@ -671,6 +679,20 @@ const j = "https://my.theonefamily.app", L = [
   }
   .hb-add-product:hover { background: rgba(255,255,255,0.04); }
 
+  /* Reduce motion */
+  @media (prefers-reduced-motion: reduce) {
+    .hb-waffle-tile,
+    .hb-waffle-panel,
+    .hb-notif-dropdown,
+    .hb-user-dropdown,
+    .hb-sp-panel {
+      animation: none !important;
+      opacity: 1 !important;
+    }
+    .hb-waffle-tile-icon { transition: none !important; }
+    .hb-waffle-tile-icon.current { animation: none !important; }
+  }
+
   /* Responsive */
   @media (max-width: 640px) {
     .hb-search-wrap { display: none; }
@@ -680,6 +702,37 @@ const j = "https://my.theonefamily.app", L = [
   }
 
   /* Animations */
+  /* Tile stagger animation */
+  .hb-waffle-tile {
+    opacity: 0;
+    animation: hb-tile-enter 0.2s ease forwards;
+  }
+  .hb-waffle-tile:nth-child(1) { animation-delay: 0ms; }
+  .hb-waffle-tile:nth-child(2) { animation-delay: 30ms; }
+  .hb-waffle-tile:nth-child(3) { animation-delay: 60ms; }
+  .hb-waffle-tile:nth-child(4) { animation-delay: 90ms; }
+  .hb-waffle-tile:nth-child(5) { animation-delay: 120ms; }
+  .hb-waffle-tile:nth-child(6) { animation-delay: 150ms; }
+  .hb-waffle-tile:nth-child(7) { animation-delay: 180ms; }
+  .hb-waffle-tile:nth-child(8) { animation-delay: 210ms; }
+  .hb-waffle-tile:nth-child(9) { animation-delay: 240ms; }
+  .hb-waffle-tile:nth-child(10) { animation-delay: 270ms; }
+  .hb-waffle-tile:nth-child(11) { animation-delay: 300ms; }
+  .hb-waffle-tile:nth-child(12) { animation-delay: 330ms; }
+  .hb-waffle-tile:nth-child(n+13) { animation-delay: 360ms; }
+
+  @keyframes hb-tile-enter {
+    from { opacity: 0; transform: scale(0.9); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  @keyframes hb-tile-pulse {
+    0%, 100% { box-shadow: 0 0 0 2px currentColor; }
+    50% { box-shadow: 0 0 12px currentColor, 0 0 0 2px currentColor; }
+  }
+  @keyframes hb-panel-slide {
+    from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
   @keyframes hb-fade-in {
     from { opacity: 0; transform: translateY(-4px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -1162,72 +1215,74 @@ function V(r) {
     return null;
   }
 }
-function W(r) {
+function D(r) {
   try {
     const t = r.split(".");
     if (t.length !== 3) return null;
-    const n = t[1].replace(/-/g, "+").replace(/_/g, "/"), o = n + "=".repeat((4 - n.length % 4) % 4);
-    return JSON.parse(atob(o));
+    const n = t[1].replace(/-/g, "+").replace(/_/g, "/"), a = n + "=".repeat((4 - n.length % 4) % 4);
+    return JSON.parse(atob(a));
   } catch {
     return null;
   }
 }
-function J(r, t, n) {
+function W(r, t, n) {
   if (t && n)
     return (t[0] + n[0]).toUpperCase();
   if (t)
     return t.slice(0, 2).toUpperCase();
-  const o = r.split("@")[0].split(/[._-]/);
-  return o.length >= 2 ? (o[0][0] + o[1][0]).toUpperCase() : r.slice(0, 2).toUpperCase();
+  const a = r.split("@")[0].split(/[._-]/);
+  return a.length >= 2 ? (a[0][0] + a[1][0]).toUpperCase() : r.slice(0, 2).toUpperCase();
 }
-function G(r) {
+function J(r) {
   return _(() => {
     if (r) return r;
     const t = V("hub_session");
     if (!t) return null;
-    const n = W(t);
+    const n = D(t);
     if (!n) return null;
-    const o = n.userId || n.sub || "", l = n.tenantId || n.tenant_id || "", c = n.tenantSlug || "", d = n.tenantName || c, s = n.email || "", a = n.role || "member", i = n.firstName, b = n.lastName;
-    return !o || !s ? null : {
-      userId: o,
-      tenantId: l,
-      tenantSlug: c,
-      tenantName: d,
-      email: s,
-      role: a,
-      firstName: i,
-      lastName: b,
-      initials: J(s, i, b)
+    const a = n.userId || n.sub || "", s = n.tenantId || n.tenant_id || "", d = n.tenantSlug || "", c = n.tenantName || d, o = n.email || "", l = n.role || "member", i = n.orgRole, b = n.entitlements, u = n.firstName, v = n.lastName;
+    return !a || !o ? null : {
+      userId: a,
+      tenantId: s,
+      tenantSlug: d,
+      tenantName: c,
+      email: o,
+      role: l,
+      orgRole: i,
+      entitlements: b,
+      firstName: u,
+      lastName: v,
+      initials: W(o, u, v)
     };
   }, [r]);
 }
-function Y(r, t) {
-  const [n, o] = h([]), [l, c] = h(!1), [d, s] = h(null);
+function G(r, t) {
+  const [n, a] = h([]), [s, d] = h(!1), [c, o] = h(null);
   return N(() => {
     if (!t) {
-      o(L.map((i) => ({ ...i, active: !1 })));
+      a(L.map((i) => ({ ...i, active: !1 })));
       return;
     }
-    c(!0), s(null);
-    const a = new AbortController();
+    d(!0), o(null);
+    const l = new AbortController();
     return fetch(`${r}/api/bus/products?tenant_id=${encodeURIComponent(t)}`, {
       credentials: "include",
-      signal: a.signal
+      signal: l.signal
     }).then((i) => {
       if (!i.ok) throw new Error(`Products API returned ${i.status}`);
       return i.json();
     }).then((i) => {
       const b = new Set(i.activeProductIds);
-      o(
-        L.map((f) => ({ ...f, active: b.has(f.id) }))
-      ), c(!1);
+      a(
+        L.map((u) => ({ ...u, active: b.has(u.id) }))
+      ), d(!1);
     }).catch((i) => {
-      i.name !== "AbortError" && (o(L.map((b) => ({ ...b, active: !1 }))), s(i.message), c(!1));
-    }), () => a.abort();
-  }, [r, t]), { products: n, loading: l, error: d };
+      i.name !== "AbortError" && (a(L.map((b) => ({ ...b, active: !1 }))), o(i.message), d(!1));
+    }), () => l.abort();
+  }, [r, t]), { products: n, loading: s, error: c };
 }
-function X(r, t, n) {
-  const [o, l] = h([]), c = C(null);
+function Y(r, t, n) {
+  const [a, s] = h([]), d = M(null);
   N(() => {
     if (!n) return;
     const i = new AbortController();
@@ -1235,7 +1290,7 @@ function X(r, t, n) {
       credentials: "include",
       signal: i.signal
     }).then((b) => b.ok ? b.json() : Promise.resolve({ notifications: [] })).then((b) => {
-      l(b.notifications ?? []);
+      s(b.notifications ?? []);
     }).catch(() => {
     }), () => i.abort();
   }, [r, n]), N(() => {
@@ -1243,41 +1298,41 @@ function X(r, t, n) {
     let i = !1;
     return (async () => {
       try {
-        const { HubConnectionBuilder: b, LogLevel: f } = await import("./index-CrDahL0u.js"), k = new b().withUrl(`${t}?tenantId=${encodeURIComponent(n)}`).withAutomaticReconnect().configureLogging(f.Warning).build();
-        k.on("notification", (y) => {
-          l((m) => [y, ...m.slice(0, 49)]);
-        }), k.on("notificationsRead", (y) => {
+        const { HubConnectionBuilder: b, LogLevel: u } = await import("./index-CrDahL0u.js"), v = new b().withUrl(`${t}?tenantId=${encodeURIComponent(n)}`).withAutomaticReconnect().configureLogging(u.Warning).build();
+        v.on("notification", (y) => {
+          s((m) => [y, ...m.slice(0, 49)]);
+        }), v.on("notificationsRead", (y) => {
           const m = new Set(y);
-          l(
-            (v) => v.map((g) => m.has(g.id) ? { ...g, read: !0 } : g)
+          s(
+            (k) => k.map((g) => m.has(g.id) ? { ...g, read: !0 } : g)
           );
-        }), i || (await k.start(), c.current = k);
+        }), i || (await v.start(), d.current = v);
       } catch {
       }
     })(), () => {
       var b;
-      i = !0, (b = c.current) == null || b.stop(), c.current = null;
+      i = !0, (b = d.current) == null || b.stop(), d.current = null;
     };
   }, [t, n]);
-  const d = w((i) => {
-    l(
-      (b) => b.map((f) => f.id === i ? { ...f, read: !0 } : f)
+  const c = w((i) => {
+    s(
+      (b) => b.map((u) => u.id === i ? { ...u, read: !0 } : u)
     ), fetch(`${r}/api/bus/notifications/${encodeURIComponent(i)}/read`, {
       method: "POST",
       credentials: "include"
     }).catch(() => {
     });
-  }, [r]), s = w(() => {
-    l((i) => i.map((b) => ({ ...b, read: !0 }))), fetch(`${r}/api/bus/notifications/mark-all-read`, {
+  }, [r]), o = w(() => {
+    s((i) => i.map((b) => ({ ...b, read: !0 }))), fetch(`${r}/api/bus/notifications/mark-all-read`, {
       method: "POST",
       credentials: "include"
     }).catch(() => {
     });
-  }, [r]), a = o.filter((i) => !i.read).length;
-  return { notifications: o, unreadCount: a, markAllRead: s, markRead: d };
+  }, [r]), l = a.filter((i) => !i.read).length;
+  return { notifications: a, unreadCount: l, markAllRead: o, markRead: c };
 }
-const x = (r) => function({ size: n = 16, className: o, color: l = "currentColor" }) {
-  const c = Array.isArray(r) ? r : [r];
+const x = (r) => function({ size: n = 16, className: a, color: s = "currentColor" }) {
+  const d = Array.isArray(r) ? r : [r];
   return /* @__PURE__ */ e(
     "svg",
     {
@@ -1286,28 +1341,28 @@ const x = (r) => function({ size: n = 16, className: o, color: l = "currentColor
       height: n,
       viewBox: "0 0 24 24",
       fill: "none",
-      stroke: l,
+      stroke: s,
       strokeWidth: "2",
       strokeLinecap: "round",
       strokeLinejoin: "round",
-      className: o,
-      children: c.map((d, s) => /* @__PURE__ */ e("path", { d }, s))
+      className: a,
+      children: d.map((c, o) => /* @__PURE__ */ e("path", { d: c }, o))
     }
   );
-}, E = x("M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"), Q = x([
+}, E = x("M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"), X = x([
   "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9",
   "M13.73 21a2 2 0 0 1-3.46 0"
-]), R = x("M18 6 6 18M6 6l12 12"), Z = x(["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"]), ee = x([
+]), B = x("M18 6 6 18M6 6l12 12"), Q = x(["M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2", "M12 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"]), Z = x([
   "M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16z",
   "M12 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"
-]), te = x([
+]), ee = x([
   "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4",
   "M16 17l5-5-5-5",
   "M21 12H9"
-]), re = x([
+]), te = x([
   "M7 16V4m0 0L3 8m4-4 4 4",
   "M17 8v12m0 0 4-4m-4 4-4-4"
-]), ne = x("M7.9 20A9 9 0 1 0 4 16.1L2 22z"), ie = x([
+]), re = x("M7.9 20A9 9 0 1 0 4 16.1L2 22z"), ne = x([
   "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z",
   "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
   "M4.93 4.93l4.24 4.24",
@@ -1315,67 +1370,67 @@ const x = (r) => function({ size: n = 16, className: o, color: l = "currentColor
   "M14.83 9.17l4.24-4.24",
   "M14.83 9.17l3.53-3.53",
   "M4.93 19.07l4.24-4.24"
-]), ae = x(["M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16", "M2 10a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10H2z"]), oe = x(["M22 12h-4", "M6 12H2", "M12 6V2", "M12 22v-4", "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"]), se = x(["M2 3h20v14H2z", "M8 21h8", "M12 17v4"]), le = x(["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "M9 12l2 2 4-4"]), ce = x(["M22 12H2", "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z", "M6 16h.01", "M10 16h.01"]), de = x(["M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z", "M8 10v4", "M12 10v2", "M16 10v6"]), pe = x(["M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z", "M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"]), he = x("M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"), be = x(["M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z", "M20 3v4", "M22 5h-4"]), ue = x(["M23 7l-7 5 7 5V7z", "M14 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"]), fe = x(["M18 22V8l-6-6-6 6v14", "M2 22h20", "M10 22v-4a2 2 0 0 1 4 0v4", "M12 7v5", "M10 9h4"]), me = x(["M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18", "M6 12H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2", "M18 12h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2", "M10 6h4", "M10 10h4", "M10 14h4", "M10 18h4"]), ge = x(["M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h1", "M15 18h6a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14", "M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4z", "M17 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"]), xe = x(["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", "M22 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"]), ve = x(["M12 2a9 3 0 1 0 0 6 9 3 0 0 0 0-6z", "M21 12c0 1.66-4 3-9 3s-9-1.34-9-3", "M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"]), ye = x(["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.73 21a2 2 0 0 1-3.46 0", "M2 8c0-2.2.7-4.3 2-6", "M22 8a10 10 0 0 0-2-6"]), ke = x(["M13 4h3a2 2 0 0 1 2 2v14", "M2 20h3", "M13 20h9", "M10 12v.01", "M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4.243-1.06A2 2 0 0 1 13 4.561z"]), we = x(["M16 2l5 5-14 14L2 16z", "M12 8l-2-2", "M8 12l-2-2"]), Ne = x(["M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", "M2 12h20", "M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"]), ze = x(["M3 3h7v7H3z", "M14 3h7v7h-7z", "M14 14h7v7h-7z", "M3 14h7v7H3z"]), Se = x("M22 12h-4l-3 9L9 3l-3 9H2"), Ce = {
-  briefcase: ae,
-  target: oe,
-  monitor: se,
-  "shield-check": le,
-  "hard-drive": ce,
-  "folder-kanban": de,
-  "book-open": pe,
-  phone: he,
-  sparkles: be,
-  video: ue,
-  church: fe,
-  "building-2": me,
-  truck: ge,
-  users: xe,
-  database: ve,
-  "bell-ring": ye,
-  "door-open": ke,
-  scale: we,
-  globe: Ne,
+]), ie = x(["M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16", "M2 10a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v10H2z"]), ae = x(["M22 12h-4", "M6 12H2", "M12 6V2", "M12 22v-4", "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"]), oe = x(["M2 3h20v14H2z", "M8 21h8", "M12 17v4"]), se = x(["M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", "M9 12l2 2 4-4"]), le = x(["M22 12H2", "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z", "M6 16h.01", "M10 16h.01"]), ce = x(["M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2z", "M8 10v4", "M12 10v2", "M16 10v6"]), de = x(["M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z", "M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"]), pe = x("M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"), he = x(["M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z", "M20 3v4", "M22 5h-4"]), be = x(["M23 7l-7 5 7 5V7z", "M14 5H3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"]), ue = x(["M18 22V8l-6-6-6 6v14", "M2 22h20", "M10 22v-4a2 2 0 0 1 4 0v4", "M12 7v5", "M10 9h4"]), fe = x(["M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18", "M6 12H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2", "M18 12h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2", "M10 6h4", "M10 10h4", "M10 14h4", "M10 18h4"]), me = x(["M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h1", "M15 18h6a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14", "M7 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4z", "M17 18a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"]), ge = x(["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "M9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z", "M22 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"]), xe = x(["M12 2a9 3 0 1 0 0 6 9 3 0 0 0 0-6z", "M21 12c0 1.66-4 3-9 3s-9-1.34-9-3", "M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"]), ve = x(["M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9", "M13.73 21a2 2 0 0 1-3.46 0", "M2 8c0-2.2.7-4.3 2-6", "M22 8a10 10 0 0 0-2-6"]), ye = x(["M13 4h3a2 2 0 0 1 2 2v14", "M2 20h3", "M13 20h9", "M10 12v.01", "M13 4.562v16.157a1 1 0 0 1-1.242.97L5 20V5.562a2 2 0 0 1 1.515-1.94l4.243-1.06A2 2 0 0 1 13 4.561z"]), ke = x(["M16 2l5 5-14 14L2 16z", "M12 8l-2-2", "M8 12l-2-2"]), we = x(["M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", "M2 12h20", "M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"]), Ne = x(["M3 3h7v7H3z", "M14 3h7v7h-7z", "M14 14h7v7h-7z", "M3 14h7v7H3z"]), ze = x("M22 12h-4l-3 9L9 3l-3 9H2"), Ce = {
+  briefcase: ie,
+  target: ae,
+  monitor: oe,
+  "shield-check": se,
+  "hard-drive": le,
+  "folder-kanban": ce,
+  "book-open": de,
+  phone: pe,
+  sparkles: he,
+  video: be,
+  church: ue,
+  "building-2": fe,
+  truck: me,
+  users: ge,
+  database: xe,
+  "bell-ring": ve,
+  "door-open": ye,
+  scale: ke,
+  globe: we,
   search: E,
-  "layout-grid": ze,
-  activity: Se
+  "layout-grid": Ne,
+  activity: ze
 };
 function Me() {
   const r = [];
   for (let t = 0; t < 3; t++)
     for (let n = 0; n < 3; n++)
       r.push([6 + n * 7, 6 + t * 7]);
-  return /* @__PURE__ */ e("svg", { width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: r.map(([t, n], o) => /* @__PURE__ */ e("circle", { cx: t, cy: n, r: "2", fill: "#94a3b8" }, o)) });
+  return /* @__PURE__ */ e("svg", { width: "20", height: "20", viewBox: "0 0 24 24", fill: "none", xmlns: "http://www.w3.org/2000/svg", children: r.map(([t, n], a) => /* @__PURE__ */ e("circle", { cx: t, cy: n, r: "2", fill: "#94a3b8" }, a)) });
 }
 function P({ icon: r, size: t = 20 }) {
   const n = Ce[r];
   return n ? /* @__PURE__ */ e(n, { size: t, color: "#fff" }) : /* @__PURE__ */ e("span", { style: { color: "#fff", fontSize: 14, fontWeight: 700 }, children: r.charAt(0).toUpperCase() });
 }
-function Te({
+function Se({
   currentProduct: r,
   products: t,
   open: n,
-  onToggle: o,
-  onClose: l,
-  hubUrl: c
+  onToggle: a,
+  onClose: s,
+  hubUrl: d
 }) {
-  const d = C(null), s = t.filter((i) => i.active), a = t.filter((i) => !i.active);
+  const c = M(null), o = t.filter((i) => i.active), l = t.filter((i) => !i.active);
   return N(() => {
     if (!n) return;
-    function i(f) {
-      d.current && !d.current.contains(f.target) && l();
+    function i(u) {
+      c.current && !c.current.contains(u.target) && s();
     }
-    function b(f) {
-      f.key === "Escape" && l();
+    function b(u) {
+      u.key === "Escape" && s();
     }
     return document.addEventListener("mousedown", i), document.addEventListener("keydown", b), () => {
       document.removeEventListener("mousedown", i), document.removeEventListener("keydown", b);
     };
-  }, [n, l]), /* @__PURE__ */ p("div", { className: "hb-switcher", ref: d, style: { position: "relative" }, children: [
+  }, [n, s]), /* @__PURE__ */ p("div", { className: "hb-switcher", ref: c, style: { position: "relative" }, children: [
     /* @__PURE__ */ e(
       "button",
       {
         className: `hb-waffle-btn${n ? " open" : ""}`,
-        onClick: o,
+        onClick: a,
         "aria-expanded": n,
         "aria-label": "App launcher",
         children: /* @__PURE__ */ e(Me, {})
@@ -1383,12 +1438,12 @@ function Te({
     ),
     n && /* @__PURE__ */ p("div", { className: "hb-waffle-panel", role: "menu", children: [
       /* @__PURE__ */ e("div", { className: "hb-waffle-header", children: "Apps" }),
-      /* @__PURE__ */ e("div", { className: "hb-waffle-grid", children: s.map((i) => /* @__PURE__ */ p(
+      /* @__PURE__ */ e("div", { className: "hb-waffle-grid", children: o.map((i) => /* @__PURE__ */ p(
         "a",
         {
           href: i.url,
           className: "hb-waffle-tile",
-          onClick: l,
+          onClick: s,
           role: "menuitem",
           children: [
             /* @__PURE__ */ e(
@@ -1407,15 +1462,15 @@ function Te({
         },
         i.id
       )) }),
-      a.length > 0 && /* @__PURE__ */ p($, { children: [
+      l.length > 0 && /* @__PURE__ */ p($, { children: [
         /* @__PURE__ */ e("div", { className: "hb-waffle-sep" }),
         /* @__PURE__ */ e("div", { className: "hb-waffle-section-label", children: "Available" }),
-        /* @__PURE__ */ e("div", { className: "hb-waffle-grid", children: a.map((i) => /* @__PURE__ */ p(
+        /* @__PURE__ */ e("div", { className: "hb-waffle-grid", children: l.map((i) => /* @__PURE__ */ p(
           "a",
           {
-            href: `${c}/products/${i.id}`,
+            href: `${d}/products/${i.id}`,
             className: "hb-waffle-tile inactive",
-            onClick: l,
+            onClick: s,
             role: "menuitem",
             children: [
               /* @__PURE__ */ e(
@@ -1435,72 +1490,72 @@ function Te({
       /* @__PURE__ */ e(
         "a",
         {
-          href: `${c}/products`,
+          href: `${d}/products`,
           className: "hb-waffle-explore",
-          onClick: l,
+          onClick: s,
           children: "Explore all products →"
         }
       )
     ] })
   ] });
 }
-function $e(r, t, n, o = 200) {
-  const [l, c] = h([]), [d, s] = h(!1), a = C(null);
+function Te(r, t, n, a = 200) {
+  const [s, d] = h([]), [c, o] = h(!1), l = M(null);
   return N(() => {
-    a.current && clearTimeout(a.current);
+    l.current && clearTimeout(l.current);
     const i = n.trim();
     if (!i || !t) {
-      c([]), s(!1);
+      d([]), o(!1);
       return;
     }
-    s(!0);
+    o(!0);
     const b = new AbortController();
-    return a.current = setTimeout(() => {
+    return l.current = setTimeout(() => {
       fetch(
         `${r}/api/bus/search?q=${encodeURIComponent(i)}&tenant_id=${encodeURIComponent(t)}`,
         { credentials: "include", signal: b.signal }
-      ).then((f) => f.ok ? f.json() : Promise.resolve({ groups: [] })).then((f) => {
-        c(f.groups ?? []), s(!1);
-      }).catch((f) => {
-        f.name !== "AbortError" && (c([]), s(!1));
+      ).then((u) => u.ok ? u.json() : Promise.resolve({ groups: [] })).then((u) => {
+        d(u.groups ?? []), o(!1);
+      }).catch((u) => {
+        u.name !== "AbortError" && (d([]), o(!1));
       });
-    }, o), () => {
-      b.abort(), a.current && clearTimeout(a.current);
+    }, a), () => {
+      b.abort(), l.current && clearTimeout(l.current);
     };
-  }, [r, t, n, o]), { results: l, loading: d };
+  }, [r, t, n, a]), { results: s, loading: c };
 }
-function Le({ apiBase: r, tenantId: t }) {
-  const [n, o] = h(!1), [l, c] = h(""), [d, s] = h(-1), a = C(null), { results: i, loading: b } = $e(r, t, l), f = i.flatMap((g) => g.results), k = w(() => {
-    o(!0), c(""), s(-1), setTimeout(() => {
+function $e({ apiBase: r, tenantId: t }) {
+  const [n, a] = h(!1), [s, d] = h(""), [c, o] = h(-1), l = M(null), { results: i, loading: b } = Te(r, t, s), u = i.flatMap((g) => g.results), v = w(() => {
+    a(!0), d(""), o(-1), setTimeout(() => {
       var g;
-      return (g = a.current) == null ? void 0 : g.focus();
+      return (g = l.current) == null ? void 0 : g.focus();
     }, 0);
   }, []), y = w(() => {
-    o(!1), c(""), s(-1);
+    a(!1), d(""), o(-1);
   }, []);
   N(() => {
-    function g(u) {
-      (u.metaKey || u.ctrlKey) && u.key === "k" && (u.preventDefault(), n ? y() : k()), u.key === "Escape" && n && y();
+    function g(f) {
+      (f.metaKey || f.ctrlKey) && f.key === "k" && (f.preventDefault(), n ? y() : v()), f.key === "Escape" && n && y();
     }
     return document.addEventListener("keydown", g), () => document.removeEventListener("keydown", g);
-  }, [n, k, y]);
+  }, [n, v, y]);
   function m(g) {
     if (g.key === "ArrowDown")
-      g.preventDefault(), s((u) => Math.min(u + 1, f.length - 1));
+      g.preventDefault(), o((f) => Math.min(f + 1, u.length - 1));
     else if (g.key === "ArrowUp")
-      g.preventDefault(), s((u) => Math.max(u - 1, -1));
-    else if (g.key === "Enter" && d >= 0) {
-      const u = f[d];
-      u && (window.location.href = u.deepLink, y());
+      g.preventDefault(), o((f) => Math.max(f - 1, -1));
+    else if (g.key === "Enter" && c >= 0) {
+      const f = u[c];
+      f && (window.location.href = f.deepLink, y());
     }
   }
-  const v = typeof navigator < "u" && /Mac/i.test(navigator.platform);
+  const k = typeof navigator < "u" && /Mac/i.test(navigator.platform);
   return /* @__PURE__ */ p($, { children: [
-    /* @__PURE__ */ e("div", { className: "hb-search-wrap", children: /* @__PURE__ */ p("button", { className: "hb-search-trigger", onClick: k, "aria-label": "Search (Cmd+K)", children: [
+    /* @__PURE__ */ e("div", { className: "hb-search-wrap", children: /* @__PURE__ */ p("button", { className: "hb-search-trigger", onClick: v, "aria-label": "Search (Cmd+K)", children: [
       /* @__PURE__ */ e(E, { size: 14 }),
       /* @__PURE__ */ e("span", { className: "hb-search-trigger-text", children: "Search everything..." }),
       /* @__PURE__ */ p("span", { className: "hb-kbd", children: [
-        /* @__PURE__ */ e("kbd", { children: v ? "⌘" : "Ctrl" }),
+        /* @__PURE__ */ e("kbd", { children: k ? "⌘" : "Ctrl" }),
         /* @__PURE__ */ e("kbd", { children: "K" })
       ] })
     ] }) }),
@@ -1520,35 +1575,35 @@ function Le({ apiBase: r, tenantId: t }) {
             /* @__PURE__ */ e(
               "input",
               {
-                ref: a,
+                ref: l,
                 className: "hb-search-input",
                 placeholder: "Search everything...",
-                value: l,
+                value: s,
                 onChange: (g) => {
-                  c(g.target.value), s(-1);
+                  d(g.target.value), o(-1);
                 },
                 onKeyDown: m,
                 autoComplete: "off",
                 spellCheck: !1
               }
             ),
-            l && /* @__PURE__ */ e(
+            s && /* @__PURE__ */ e(
               "button",
               {
                 style: { background: "none", border: "none", cursor: "pointer", padding: 0, color: "#64748b" },
-                onClick: () => c(""),
+                onClick: () => d(""),
                 "aria-label": "Clear",
-                children: /* @__PURE__ */ e(R, { size: 16 })
+                children: /* @__PURE__ */ e(B, { size: 16 })
               }
             )
           ] }),
           /* @__PURE__ */ e(
-            _e,
+            Le,
             {
-              query: l,
+              query: s,
               loading: b,
               results: i,
-              focusedIndex: d,
+              focusedIndex: c,
               onNavigate: y
             }
           )
@@ -1557,7 +1612,7 @@ function Le({ apiBase: r, tenantId: t }) {
     )
   ] });
 }
-function _e({ query: r, loading: t, results: n, focusedIndex: o, onNavigate: l }) {
+function Le({ query: r, loading: t, results: n, focusedIndex: a, onNavigate: s }) {
   if (!r.trim())
     return /* @__PURE__ */ p("div", { className: "hb-search-empty", children: [
       /* @__PURE__ */ e("div", { children: "Type to search across all products" }),
@@ -1574,68 +1629,68 @@ function _e({ query: r, loading: t, results: n, focusedIndex: o, onNavigate: l }
       r,
       "”"
     ] });
-  let c = 0;
-  return /* @__PURE__ */ e("div", { className: "hb-search-results", children: n.map((d) => /* @__PURE__ */ p("div", { children: [
+  let d = 0;
+  return /* @__PURE__ */ e("div", { className: "hb-search-results", children: n.map((c) => /* @__PURE__ */ p("div", { children: [
     /* @__PURE__ */ p("div", { className: "hb-search-group-label", children: [
-      d.productName,
+      c.productName,
       " — ",
-      d.results.length,
+      c.results.length,
       " result",
-      d.results.length !== 1 ? "s" : ""
+      c.results.length !== 1 ? "s" : ""
     ] }),
-    d.results.map((s) => {
-      const a = c++;
+    c.results.map((o) => {
+      const l = d++;
       return /* @__PURE__ */ p(
         "a",
         {
-          href: s.deepLink,
-          className: `hb-search-item${o === a ? " focused" : ""}`,
-          onClick: l,
+          href: o.deepLink,
+          className: `hb-search-item${a === l ? " focused" : ""}`,
+          onClick: s,
           children: [
-            /* @__PURE__ */ e("div", { className: "hb-search-item-icon", children: s.icon ?? s.title.slice(0, 1).toUpperCase() }),
+            /* @__PURE__ */ e("div", { className: "hb-search-item-icon", children: o.icon ?? o.title.slice(0, 1).toUpperCase() }),
             /* @__PURE__ */ p("div", { className: "hb-search-item-body", children: [
-              /* @__PURE__ */ e("div", { className: "hb-search-item-title", children: s.title }),
-              s.subtitle && /* @__PURE__ */ e("div", { className: "hb-search-item-sub", children: s.subtitle })
+              /* @__PURE__ */ e("div", { className: "hb-search-item-title", children: o.title }),
+              o.subtitle && /* @__PURE__ */ e("div", { className: "hb-search-item-sub", children: o.subtitle })
             ] }),
-            /* @__PURE__ */ e("span", { className: "hb-source-badge", children: d.productName })
+            /* @__PURE__ */ e("span", { className: "hb-source-badge", children: c.productName })
           ]
         },
-        s.id
+        o.id
       );
     })
-  ] }, d.productId)) });
+  ] }, c.productId)) });
 }
-function Ee(r) {
+function _e(r) {
   const t = Math.floor((Date.now() - new Date(r).getTime()) / 1e3);
   return t < 60 ? "just now" : t < 3600 ? `${Math.floor(t / 60)}m ago` : t < 86400 ? `${Math.floor(t / 3600)}h ago` : `${Math.floor(t / 86400)}d ago`;
 }
-function Ae({
+function Ee({
   notifications: r,
   unreadCount: t,
   open: n,
-  onToggle: o,
-  onClose: l,
-  onMarkAllRead: c,
-  onMarkRead: d,
-  hubUrl: s
+  onToggle: a,
+  onClose: s,
+  onMarkAllRead: d,
+  onMarkRead: c,
+  hubUrl: o
 }) {
-  const a = C(null);
+  const l = M(null);
   return N(() => {
     if (!n) return;
     function i(b) {
-      a.current && !a.current.contains(b.target) && l();
+      l.current && !l.current.contains(b.target) && s();
     }
     return document.addEventListener("mousedown", i), () => document.removeEventListener("mousedown", i);
-  }, [n, l]), /* @__PURE__ */ p("div", { className: "hb-notif", ref: a, children: [
+  }, [n, s]), /* @__PURE__ */ p("div", { className: "hb-notif", ref: l, children: [
     /* @__PURE__ */ p(
       "button",
       {
         className: "hb-notif-btn",
-        onClick: o,
+        onClick: a,
         "aria-label": `Notifications${t > 0 ? ` (${t} unread)` : ""}`,
         "aria-expanded": n,
         children: [
-          /* @__PURE__ */ e(Q, { size: 18 }),
+          /* @__PURE__ */ e(X, { size: 18 }),
           t > 0 && /* @__PURE__ */ e("span", { className: "hb-badge", "aria-hidden": "true", children: t > 99 ? "99+" : t })
         ]
       }
@@ -1643,7 +1698,7 @@ function Ae({
     n && /* @__PURE__ */ p("div", { className: "hb-notif-dropdown", role: "dialog", "aria-label": "Notifications", children: [
       /* @__PURE__ */ p("div", { className: "hb-notif-header", children: [
         /* @__PURE__ */ e("span", { className: "hb-notif-title", children: "Notifications" }),
-        t > 0 && /* @__PURE__ */ e("button", { className: "hb-notif-mark-read", onClick: c, children: "Mark all read" })
+        t > 0 && /* @__PURE__ */ e("button", { className: "hb-notif-mark-read", onClick: d, children: "Mark all read" })
       ] }),
       /* @__PURE__ */ e("div", { className: "hb-notif-list", role: "list", children: r.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-notif-empty", children: "No notifications" }) : r.slice(0, 20).map((i) => /* @__PURE__ */ p(
         "a",
@@ -1651,7 +1706,7 @@ function Ae({
           href: i.deepLink,
           className: `hb-notif-item${i.read ? "" : " unread"}`,
           onClick: () => {
-            d(i.id), l();
+            c(i.id), s();
           },
           role: "listitem",
           children: [
@@ -1659,7 +1714,7 @@ function Ae({
               "span",
               {
                 className: "hb-notif-icon",
-                style: { background: K[i.severity] },
+                style: { background: j[i.severity] },
                 "aria-hidden": "true"
               }
             ),
@@ -1667,37 +1722,37 @@ function Ae({
               /* @__PURE__ */ e("div", { className: "hb-notif-body-title", children: i.title }),
               /* @__PURE__ */ p("div", { className: "hb-notif-meta", children: [
                 /* @__PURE__ */ e("span", { className: "hb-source-badge", children: i.productName }),
-                /* @__PURE__ */ e("span", { className: "hb-notif-time", children: Ee(i.createdAt) })
+                /* @__PURE__ */ e("span", { className: "hb-notif-time", children: _e(i.createdAt) })
               ] })
             ] })
           ]
         },
         i.id
       )) }),
-      /* @__PURE__ */ e("div", { className: "hb-notif-footer", children: /* @__PURE__ */ e("a", { href: `${s}/notifications/settings`, onClick: l, children: "Notification Settings" }) })
+      /* @__PURE__ */ e("div", { className: "hb-notif-footer", children: /* @__PURE__ */ e("a", { href: `${o}/notifications/settings`, onClick: s, children: "Notification Settings" }) })
     ] })
   ] });
 }
-function Pe({
+function Ae({
   session: r,
   open: t,
   onToggle: n,
-  onClose: o,
-  onLogout: l,
-  hubUrl: c
+  onClose: a,
+  onLogout: s,
+  hubUrl: d
 }) {
-  const d = C(null);
+  const c = M(null);
   N(() => {
     if (!t) return;
-    function a(i) {
-      d.current && !d.current.contains(i.target) && o();
+    function l(i) {
+      c.current && !c.current.contains(i.target) && a();
     }
-    return document.addEventListener("mousedown", a), () => document.removeEventListener("mousedown", a);
-  }, [t, o]);
-  function s() {
-    o(), l ? l() : window.location.href = `${c}/logout`;
+    return document.addEventListener("mousedown", l), () => document.removeEventListener("mousedown", l);
+  }, [t, a]);
+  function o() {
+    a(), s ? s() : window.location.href = `${d}/logout`;
   }
-  return /* @__PURE__ */ p("div", { className: "hb-user", ref: d, children: [
+  return /* @__PURE__ */ p("div", { className: "hb-user", ref: c, children: [
     /* @__PURE__ */ p("button", { className: "hb-user-btn", onClick: n, "aria-expanded": t, "aria-label": "User menu", children: [
       /* @__PURE__ */ e("div", { className: "hb-avatar", children: r.initials }),
       /* @__PURE__ */ e("span", { className: "hb-user-name", children: r.firstName ?? r.email.split("@")[0] }),
@@ -1726,12 +1781,12 @@ function Pe({
       /* @__PURE__ */ p(
         "a",
         {
-          href: `${c}/profile`,
+          href: `${d}/profile`,
           className: "hb-menu-item",
-          onClick: o,
+          onClick: a,
           role: "menuitem",
           children: [
-            /* @__PURE__ */ e(Z, { size: 14 }),
+            /* @__PURE__ */ e(Q, { size: 14 }),
             "Profile"
           ]
         }
@@ -1739,12 +1794,12 @@ function Pe({
       /* @__PURE__ */ p(
         "a",
         {
-          href: `${c}/settings`,
+          href: `${d}/settings`,
           className: "hb-menu-item",
-          onClick: o,
+          onClick: a,
           role: "menuitem",
           children: [
-            /* @__PURE__ */ e(ee, { size: 14 }),
+            /* @__PURE__ */ e(Z, { size: 14 }),
             "Hub Settings"
           ]
         }
@@ -1753,12 +1808,12 @@ function Pe({
       /* @__PURE__ */ p(
         "a",
         {
-          href: `${c}/switch-tenant`,
+          href: `${d}/switch-tenant`,
           className: "hb-menu-item",
-          onClick: o,
+          onClick: a,
           role: "menuitem",
           children: [
-            /* @__PURE__ */ e(re, { size: 14 }),
+            /* @__PURE__ */ e(te, { size: 14 }),
             "Switch Tenant"
           ]
         }
@@ -1768,10 +1823,10 @@ function Pe({
         "button",
         {
           className: "hb-menu-item danger",
-          onClick: s,
+          onClick: o,
           role: "menuitem",
           children: [
-            /* @__PURE__ */ e(te, { size: 14 }),
+            /* @__PURE__ */ e(ee, { size: 14 }),
             "Log Out"
           ]
         }
@@ -1779,12 +1834,12 @@ function Pe({
     ] })
   ] });
 }
-class Re {
+class Pe {
   constructor(t) {
     this.baseUrl = t.apiBaseUrl.replace(/\/$/, ""), this.apiKey = t.apiKey, this.platformId = t.platformId;
   }
   async request(t, n = {}) {
-    const o = `${this.baseUrl}${t}`, l = await fetch(o, {
+    const a = `${this.baseUrl}${t}`, s = await fetch(a, {
       ...n,
       headers: {
         "Content-Type": "application/json",
@@ -1792,12 +1847,12 @@ class Re {
         ...n.headers
       }
     });
-    if (!l.ok) {
-      const c = await l.text().catch(() => "");
-      throw new Error(`Ops Center API error ${l.status}: ${c}`);
+    if (!s.ok) {
+      const d = await s.text().catch(() => "");
+      throw new Error(`Ops Center API error ${s.status}: ${d}`);
     }
-    if (l.status !== 204)
-      return l.json();
+    if (s.status !== 204)
+      return s.json();
   }
   // ─── Tickets ───────────────────────────────────────────────
   async createTicket(t) {
@@ -1850,9 +1905,9 @@ class Re {
     return t.json();
   }
   async getKBArticles(t) {
-    const n = t ? `?category=${encodeURIComponent(t)}` : "", o = await fetch(`${this.baseUrl}/api/kb-public/${this.platformId}/articles${n}`);
-    if (!o.ok) throw new Error(`Failed to fetch KB articles: ${o.status}`);
-    return o.json();
+    const n = t ? `?category=${encodeURIComponent(t)}` : "", a = await fetch(`${this.baseUrl}/api/kb-public/${this.platformId}/articles${n}`);
+    if (!a.ok) throw new Error(`Failed to fetch KB articles: ${a.status}`);
+    return a.json();
   }
   async getKBArticle(t) {
     const n = await fetch(`${this.baseUrl}/api/kb-public/${this.platformId}/articles/${t}`);
@@ -1865,10 +1920,10 @@ class Re {
     return n.json();
   }
   // ─── Chat ────────────────────────────────────────────────────
-  async startChat(t, n, o) {
+  async startChat(t, n, a) {
     return this.request("/api/chat/sessions", {
       method: "POST",
-      body: JSON.stringify({ message: t, user_name: n, user_email: o, platform: this.platformId })
+      body: JSON.stringify({ message: t, user_name: n, user_email: a, platform: this.platformId })
     });
   }
   async sendChatMessage(t, n) {
@@ -1883,10 +1938,10 @@ class Re {
   async listChatSessions(t) {
     return this.request(`/api/chat/sessions?email=${encodeURIComponent(t)}`);
   }
-  async endChat(t, n, o) {
+  async endChat(t, n, a) {
     return this.request(`/api/chat/sessions/${t}/end`, {
       method: "POST",
-      body: JSON.stringify({ rating: n, feedback: o })
+      body: JSON.stringify({ rating: n, feedback: a })
     });
   }
   async escalateChat(t) {
@@ -1895,224 +1950,224 @@ class Re {
       body: JSON.stringify({})
     });
   }
-  async sendCobrowseEvents(t, n, o) {
+  async sendCobrowseEvents(t, n, a) {
     return this.request(`/api/chat/sessions/${t}/cobrowse`, {
       method: "POST",
-      body: JSON.stringify({ events: n, sequence: o })
+      body: JSON.stringify({ events: n, sequence: a })
     });
   }
 }
-const B = H(null);
+const I = H(null);
 function z() {
-  const r = F(B);
+  const r = F(I);
   if (!r) throw new Error("useSupportContext must be used within <SupportProvider>");
   return r;
 }
-function Be({ config: r, user: t, children: n }) {
-  const o = _(() => new Re(r), [r]), l = _(() => ({ client: o, config: r, user: t }), [o, r, t]);
-  return /* @__PURE__ */ e(B.Provider, { value: l, children: n });
+function Re({ config: r, user: t, children: n }) {
+  const a = _(() => new Pe(r), [r]), s = _(() => ({ client: a, config: r, user: t }), [a, r, t]);
+  return /* @__PURE__ */ e(I.Provider, { value: s, children: n });
 }
-function Ie(r) {
-  const { client: t, user: n } = z(), [o, l] = h([]), [c, d] = h(!0), [s, a] = h(null), i = w(async () => {
-    d(!0), a(null);
+function Be(r) {
+  const { client: t, user: n } = z(), [a, s] = h([]), [d, c] = h(!0), [o, l] = h(null), i = w(async () => {
+    c(!0), l(null);
     try {
       const b = await t.listTickets({
         reporter_email: n.email,
         status: r == null ? void 0 : r.status,
         ticket_type: r == null ? void 0 : r.ticket_type
       });
-      l(b);
+      s(b);
     } catch (b) {
-      a(b instanceof Error ? b.message : "Failed to load tickets");
+      l(b instanceof Error ? b.message : "Failed to load tickets");
     } finally {
-      d(!1);
+      c(!1);
     }
   }, [t, n.email, r == null ? void 0 : r.status, r == null ? void 0 : r.ticket_type]);
   return N(() => {
     i();
-  }, [i]), { tickets: o, loading: c, error: s, refresh: i };
+  }, [i]), { tickets: a, loading: d, error: o, refresh: i };
 }
-function Oe(r) {
-  const { client: t } = z(), [n, o] = h(null), [l, c] = h([]), [d, s] = h(!0), [a, i] = h(null), b = w(async () => {
+function Ie(r) {
+  const { client: t } = z(), [n, a] = h(null), [s, d] = h([]), [c, o] = h(!0), [l, i] = h(null), b = w(async () => {
     if (r) {
-      s(!0), i(null);
+      o(!0), i(null);
       try {
-        const [f, k] = await Promise.all([
+        const [u, v] = await Promise.all([
           t.getTicket(r),
           t.getTicketActivity(r)
         ]);
-        o(f), c(k);
-      } catch (f) {
-        i(f instanceof Error ? f.message : "Failed to load ticket");
+        a(u), d(v);
+      } catch (u) {
+        i(u instanceof Error ? u.message : "Failed to load ticket");
       } finally {
-        s(!1);
+        o(!1);
       }
     }
   }, [t, r]);
   return N(() => {
     b();
-  }, [b]), { ticket: n, activity: l, loading: d, error: a, refresh: b };
+  }, [b]), { ticket: n, activity: s, loading: c, error: l, refresh: b };
 }
-function He() {
-  const { client: r, user: t } = z(), [n, o] = h(!1), [l, c] = h(null);
-  return { createTicket: w(async (s) => {
-    o(!0), c(null);
+function Oe() {
+  const { client: r, user: t } = z(), [n, a] = h(!1), [s, d] = h(null);
+  return { createTicket: w(async (o) => {
+    a(!0), d(null);
     try {
       return await r.createTicket({
-        ...s,
+        ...o,
         reporter_email: t.email,
         reporter_name: t.name
       });
-    } catch (a) {
-      return c(a instanceof Error ? a.message : "Failed to create ticket"), null;
+    } catch (l) {
+      return d(l instanceof Error ? l.message : "Failed to create ticket"), null;
     } finally {
-      o(!1);
+      a(!1);
     }
-  }, [r, t]), submitting: n, error: l };
+  }, [r, t]), submitting: n, error: s };
 }
-function Fe() {
-  const { client: r, user: t } = z(), [n, o] = h(!1), [l, c] = h(null);
-  return { addComment: w(async (s, a) => {
-    o(!0), c(null);
+function He() {
+  const { client: r, user: t } = z(), [n, a] = h(!1), [s, d] = h(null);
+  return { addComment: w(async (o, l) => {
+    a(!0), d(null);
     try {
-      return await r.addComment(s, {
-        content: a,
+      return await r.addComment(o, {
+        content: l,
         actor_email: t.email,
         actor_name: t.name
       }), !0;
     } catch (i) {
-      return c(i instanceof Error ? i.message : "Failed to add comment"), !1;
+      return d(i instanceof Error ? i.message : "Failed to add comment"), !1;
     } finally {
-      o(!1);
+      a(!1);
     }
-  }, [r, t]), submitting: n, error: l };
+  }, [r, t]), submitting: n, error: s };
+}
+function Fe() {
+  const { client: r } = z(), [t, n] = h([]), [a, s] = h(!0), [d, c] = h(null), o = w(async () => {
+    s(!0), c(null);
+    try {
+      const l = await r.getPublicReleases();
+      n(l);
+    } catch (l) {
+      c(l instanceof Error ? l.message : "Failed to load release notes");
+    } finally {
+      s(!1);
+    }
+  }, [r]);
+  return N(() => {
+    o();
+  }, [o]), { releases: t, loading: a, error: d, refresh: o };
 }
 function Ue() {
-  const { client: r } = z(), [t, n] = h([]), [o, l] = h(!0), [c, d] = h(null), s = w(async () => {
-    l(!0), d(null);
+  const { client: r } = z(), [t, n] = h([]), [a, s] = h(!0), [d, c] = h(null), o = w(async () => {
+    s(!0), c(null);
     try {
-      const a = await r.getPublicReleases();
-      n(a);
-    } catch (a) {
-      d(a instanceof Error ? a.message : "Failed to load release notes");
+      const l = await r.getFeatures();
+      n(l);
+    } catch (l) {
+      c(l instanceof Error ? l.message : "Failed to load features");
     } finally {
-      l(!1);
+      s(!1);
     }
   }, [r]);
   return N(() => {
-    s();
-  }, [s]), { releases: t, loading: o, error: c, refresh: s };
+    o();
+  }, [o]), { features: t, loading: a, error: d, refresh: o };
 }
 function je() {
-  const { client: r } = z(), [t, n] = h([]), [o, l] = h(!0), [c, d] = h(null), s = w(async () => {
-    l(!0), d(null);
+  const { client: r, user: t } = z(), [n, a] = h(null), [s, d] = h(null), c = w(async (l) => {
+    a(l), d(null);
     try {
-      const a = await r.getFeatures();
-      n(a);
-    } catch (a) {
-      d(a instanceof Error ? a.message : "Failed to load features");
-    } finally {
-      l(!1);
-    }
-  }, [r]);
-  return N(() => {
-    s();
-  }, [s]), { features: t, loading: o, error: c, refresh: s };
-}
-function Ke() {
-  const { client: r, user: t } = z(), [n, o] = h(null), [l, c] = h(null), d = w(async (a) => {
-    o(a), c(null);
-    try {
-      return await r.voteOnTicket(a, {
+      return await r.voteOnTicket(l, {
         user_email: t.email,
         user_name: t.name
       }), !0;
     } catch (i) {
-      return c(i instanceof Error ? i.message : "Failed to vote"), !1;
+      return d(i instanceof Error ? i.message : "Failed to vote"), !1;
     } finally {
-      o(null);
+      a(null);
     }
-  }, [r, t]), s = w(async (a) => {
-    o(a), c(null);
+  }, [r, t]), o = w(async (l) => {
+    a(l), d(null);
     try {
-      return await r.removeVote(a), !0;
+      return await r.removeVote(l), !0;
     } catch (i) {
-      return c(i instanceof Error ? i.message : "Failed to remove vote"), !1;
+      return d(i instanceof Error ? i.message : "Failed to remove vote"), !1;
     } finally {
-      o(null);
+      a(null);
     }
   }, [r]);
-  return { vote: d, removeVote: s, voting: n, error: l };
+  return { vote: c, removeVote: o, voting: n, error: s };
 }
-function qe() {
-  const { client: r } = z(), [t, n] = h([]), [o, l] = h(!0), [c, d] = h(null), s = w(async () => {
-    l(!0), d(null);
+function Ke() {
+  const { client: r } = z(), [t, n] = h([]), [a, s] = h(!0), [d, c] = h(null), o = w(async () => {
+    s(!0), c(null);
     try {
-      const a = await r.getKBCategories();
-      n(a);
-    } catch (a) {
-      d(a instanceof Error ? a.message : "Failed to load categories");
+      const l = await r.getKBCategories();
+      n(l);
+    } catch (l) {
+      c(l instanceof Error ? l.message : "Failed to load categories");
     } finally {
-      l(!1);
+      s(!1);
     }
   }, [r]);
   return N(() => {
-    s();
-  }, [s]), { categories: t, loading: o, error: c, refresh: s };
+    o();
+  }, [o]), { categories: t, loading: a, error: d, refresh: o };
 }
-function De(r) {
-  const { client: t } = z(), [n, o] = h([]), [l, c] = h(!0), [d, s] = h(null), a = w(async () => {
-    c(!0), s(null);
+function qe(r) {
+  const { client: t } = z(), [n, a] = h([]), [s, d] = h(!0), [c, o] = h(null), l = w(async () => {
+    d(!0), o(null);
     try {
       const i = await t.getKBArticles(r);
-      o(i);
+      a(i);
     } catch (i) {
-      s(i instanceof Error ? i.message : "Failed to load articles");
+      o(i instanceof Error ? i.message : "Failed to load articles");
     } finally {
-      c(!1);
+      d(!1);
     }
   }, [t, r]);
   return N(() => {
-    a();
-  }, [a]), { articles: n, loading: l, error: d, refresh: a };
+    l();
+  }, [l]), { articles: n, loading: s, error: c, refresh: l };
 }
 function Ve(r) {
-  const { client: t } = z(), [n, o] = h(null), [l, c] = h(!0), [d, s] = h(null), a = w(async () => {
+  const { client: t } = z(), [n, a] = h(null), [s, d] = h(!0), [c, o] = h(null), l = w(async () => {
     if (r) {
-      c(!0), s(null);
+      d(!0), o(null);
       try {
         const i = await t.getKBArticle(r);
-        o(i);
+        a(i);
       } catch (i) {
-        s(i instanceof Error ? i.message : "Failed to load article");
+        o(i instanceof Error ? i.message : "Failed to load article");
       } finally {
-        c(!1);
+        d(!1);
       }
     }
   }, [t, r]);
   return N(() => {
-    a();
-  }, [a]), { article: n, loading: l, error: d, refresh: a };
+    l();
+  }, [l]), { article: n, loading: s, error: c, refresh: l };
 }
-function We() {
-  const { client: r } = z(), [t, n] = h([]), [o, l] = h(!1), [c, d] = h(null), s = w(async (a) => {
-    if (!a.trim()) {
+function De() {
+  const { client: r } = z(), [t, n] = h([]), [a, s] = h(!1), [d, c] = h(null), o = w(async (l) => {
+    if (!l.trim()) {
       n([]);
       return;
     }
-    l(!0), d(null);
+    s(!0), c(null);
     try {
-      const i = await r.searchKB(a);
+      const i = await r.searchKB(l);
       n(i);
     } catch (i) {
-      d(i instanceof Error ? i.message : "Failed to search");
+      c(i instanceof Error ? i.message : "Failed to search");
     } finally {
-      l(!1);
+      s(!1);
     }
   }, [r]);
-  return { results: t, loading: o, error: c, search: s };
+  return { results: t, loading: a, error: d, search: o };
 }
-const Je = {
+const We = {
   hub: "Support",
   submit: "Submit a Ticket",
   tickets: "My Tickets",
@@ -2122,12 +2177,12 @@ const Je = {
   kb: "Knowledge Base",
   "kb-article": "Article",
   chat: "Chat"
-}, Ge = [
+}, Je = [
   { id: "bug", label: "Report a Bug", desc: "Something not working? We'll fix it.", type: "bug_report" },
   { id: "feature", label: "Request a Feature", desc: "Have an idea? We want to hear it.", type: "feature_request" },
   { id: "help", label: "Get Help", desc: "Need assistance with something?", type: "service_request" }
 ];
-function Ye({ onNav: r }) {
+function Ge({ onNav: r }) {
   const { config: t } = z();
   return /* @__PURE__ */ p("div", { className: "hb-sp-hub", children: [
     /* @__PURE__ */ p("div", { className: "hb-sp-hub-header", children: [
@@ -2138,7 +2193,7 @@ function Ye({ onNav: r }) {
         "."
       ] })
     ] }),
-    /* @__PURE__ */ e("div", { className: "hb-sp-hub-grid", children: Ge.map((n) => /* @__PURE__ */ p("button", { className: "hb-sp-card", onClick: () => r({ id: "submit", ticketType: n.type }), children: [
+    /* @__PURE__ */ e("div", { className: "hb-sp-hub-grid", children: Je.map((n) => /* @__PURE__ */ p("button", { className: "hb-sp-card", onClick: () => r({ id: "submit", ticketType: n.type }), children: [
       /* @__PURE__ */ e("div", { className: "hb-sp-card-label", children: n.label }),
       /* @__PURE__ */ e("div", { className: "hb-sp-card-desc", children: n.desc })
     ] }, n.id)) }),
@@ -2162,27 +2217,27 @@ function Ye({ onNav: r }) {
     ] })
   ] });
 }
-const Xe = [
+const Ye = [
   { value: "bug_report", label: "Bug Report" },
   { value: "feature_request", label: "Feature Request" },
   { value: "service_request", label: "Service Request" }
-], Qe = [
+], Xe = [
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
   { value: "high", label: "High" },
   { value: "critical", label: "Critical" }
-], Ze = [
+], Qe = [
   { value: "cosmetic", label: "Cosmetic" },
   { value: "minor", label: "Minor" },
   { value: "major", label: "Major" },
   { value: "blocker", label: "Blocker" }
 ];
-function et({ initialType: r, onNav: t }) {
-  const [n, o] = h(r || "bug_report"), [l, c] = h(""), [d, s] = h(""), [a, i] = h("medium"), [b, f] = h("minor"), { createTicket: k, submitting: y, error: m } = He(), [v, g] = h(null);
-  return v ? /* @__PURE__ */ p("div", { className: "hb-sp-success", children: [
+function Ze({ initialType: r, onNav: t }) {
+  const [n, a] = h(r || "bug_report"), [s, d] = h(""), [c, o] = h(""), [l, i] = h("medium"), [b, u] = h("minor"), { createTicket: v, submitting: y, error: m } = Oe(), [k, g] = h(null);
+  return k ? /* @__PURE__ */ p("div", { className: "hb-sp-success", children: [
     /* @__PURE__ */ e("div", { className: "hb-sp-success-icon", children: "✓" }),
     /* @__PURE__ */ e("div", { className: "hb-sp-success-title", children: "Ticket Submitted" }),
-    /* @__PURE__ */ e("div", { className: "hb-sp-success-num", children: v }),
+    /* @__PURE__ */ e("div", { className: "hb-sp-success-num", children: k }),
     /* @__PURE__ */ p("div", { className: "hb-sp-success-actions", children: [
       /* @__PURE__ */ e("button", { className: "hb-sp-btn hb-sp-btn-secondary", onClick: () => t({ id: "tickets" }), children: "View My Tickets" }),
       /* @__PURE__ */ e("button", { className: "hb-sp-btn hb-sp-btn-ghost", onClick: () => t({ id: "hub" }), children: "Back to Support" })
@@ -2190,15 +2245,15 @@ function et({ initialType: r, onNav: t }) {
   ] }) : /* @__PURE__ */ p("div", { className: "hb-sp-form-page", children: [
     /* @__PURE__ */ p("div", { className: "hb-sp-field", children: [
       /* @__PURE__ */ e("label", { className: "hb-sp-label", children: "Type" }),
-      /* @__PURE__ */ e("div", { className: "hb-sp-type-row", children: Xe.map((u) => /* @__PURE__ */ e(
+      /* @__PURE__ */ e("div", { className: "hb-sp-type-row", children: Ye.map((f) => /* @__PURE__ */ e(
         "button",
         {
           type: "button",
-          className: `hb-sp-type-btn${n === u.value ? " active" : ""}`,
-          onClick: () => o(u.value),
-          children: u.label
+          className: `hb-sp-type-btn${n === f.value ? " active" : ""}`,
+          onClick: () => a(f.value),
+          children: f.label
         },
-        u.value
+        f.value
       )) })
     ] }),
     /* @__PURE__ */ p("div", { className: "hb-sp-field", children: [
@@ -2208,14 +2263,14 @@ function et({ initialType: r, onNav: t }) {
         {
           id: "sp-title",
           className: "hb-sp-input",
-          value: l,
-          onChange: (u) => c(u.target.value),
+          value: s,
+          onChange: (f) => d(f.target.value),
           placeholder: "Brief description...",
           maxLength: 200
         }
       ),
       /* @__PURE__ */ p("div", { className: "hb-sp-char-count", children: [
-        l.length,
+        s.length,
         "/200"
       ] })
     ] }),
@@ -2226,42 +2281,42 @@ function et({ initialType: r, onNav: t }) {
         {
           id: "sp-desc",
           className: "hb-sp-textarea",
-          value: d,
-          onChange: (u) => s(u.target.value),
+          value: c,
+          onChange: (f) => o(f.target.value),
           placeholder: "Provide as much detail as possible...",
           rows: 6,
           maxLength: 5e3
         }
       ),
       /* @__PURE__ */ p("div", { className: "hb-sp-char-count", children: [
-        d.length,
+        c.length,
         "/5000"
       ] })
     ] }),
     /* @__PURE__ */ p("div", { className: "hb-sp-field", children: [
       /* @__PURE__ */ e("label", { className: "hb-sp-label", children: "Priority" }),
-      /* @__PURE__ */ e("div", { className: "hb-sp-chip-row", children: Qe.map((u) => /* @__PURE__ */ e(
+      /* @__PURE__ */ e("div", { className: "hb-sp-chip-row", children: Xe.map((f) => /* @__PURE__ */ e(
         "button",
         {
           type: "button",
-          className: `hb-sp-chip${a === u.value ? " active" : ""}`,
-          onClick: () => i(u.value),
-          children: u.label
+          className: `hb-sp-chip${l === f.value ? " active" : ""}`,
+          onClick: () => i(f.value),
+          children: f.label
         },
-        u.value
+        f.value
       )) })
     ] }),
     n === "bug_report" && /* @__PURE__ */ p("div", { className: "hb-sp-field", children: [
       /* @__PURE__ */ e("label", { className: "hb-sp-label", children: "Severity" }),
-      /* @__PURE__ */ e("div", { className: "hb-sp-chip-row", children: Ze.map((u) => /* @__PURE__ */ e(
+      /* @__PURE__ */ e("div", { className: "hb-sp-chip-row", children: Qe.map((f) => /* @__PURE__ */ e(
         "button",
         {
           type: "button",
-          className: `hb-sp-chip${b === u.value ? " active" : ""}`,
-          onClick: () => f(u.value),
-          children: u.label
+          className: `hb-sp-chip${b === f.value ? " active" : ""}`,
+          onClick: () => u(f.value),
+          children: f.label
         },
-        u.value
+        f.value
       )) })
     ] }),
     m && /* @__PURE__ */ e("div", { className: "hb-sp-error", children: m }),
@@ -2269,23 +2324,23 @@ function et({ initialType: r, onNav: t }) {
       "button",
       {
         className: "hb-sp-btn hb-sp-btn-primary",
-        disabled: y || !l.trim() || !d.trim(),
+        disabled: y || !s.trim() || !c.trim(),
         onClick: async () => {
-          const u = await k({
+          const f = await v({
             ticket_type: n,
-            title: l.trim(),
-            description: d.trim(),
-            priority: a,
+            title: s.trim(),
+            description: c.trim(),
+            priority: l,
             severity: n === "bug_report" ? b : void 0
           });
-          u && g(u.ticket_number);
+          f && g(f.ticket_number);
         },
         children: y ? "Submitting…" : "Submit Ticket"
       }
     )
   ] });
 }
-const I = {
+const O = {
   new: "New",
   triaged: "Triaged",
   in_progress: "In Progress",
@@ -2296,40 +2351,40 @@ const I = {
   closed: "Closed",
   cancelled: "Cancelled"
 };
-function tt({ onNav: r }) {
-  const [t, n] = h(""), { tickets: o, loading: l, error: c } = Ie({ status: t || void 0 });
+function et({ onNav: r }) {
+  const [t, n] = h(""), { tickets: a, loading: s, error: d } = Be({ status: t || void 0 });
   return /* @__PURE__ */ p("div", { className: "hb-sp-list-page", children: [
     /* @__PURE__ */ p("div", { className: "hb-sp-filter-row", children: [
-      [["", "All"], ["new,triaged,in_progress,waiting_reporter,waiting_external,on_hold", "Open"], ["resolved,closed", "Closed"]].map(([d, s]) => /* @__PURE__ */ e(
+      [["", "All"], ["new,triaged,in_progress,waiting_reporter,waiting_external,on_hold", "Open"], ["resolved,closed", "Closed"]].map(([c, o]) => /* @__PURE__ */ e(
         "button",
         {
-          className: `hb-sp-filter-btn${t === d ? " active" : ""}`,
-          onClick: () => n(d),
-          children: s
+          className: `hb-sp-filter-btn${t === c ? " active" : ""}`,
+          onClick: () => n(c),
+          children: o
         },
-        d
+        c
       )),
       /* @__PURE__ */ e("button", { className: "hb-sp-filter-btn hb-sp-filter-btn-new", onClick: () => r({ id: "submit" }), children: "+ New" })
     ] }),
-    l ? /* @__PURE__ */ e("div", { className: "hb-sp-list", children: [0, 1, 2].map((d) => /* @__PURE__ */ e("div", { className: "hb-sp-skeleton" }, d)) }) : c ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: c }) : o.length === 0 ? /* @__PURE__ */ p("div", { className: "hb-sp-empty", children: [
+    s ? /* @__PURE__ */ e("div", { className: "hb-sp-list", children: [0, 1, 2].map((c) => /* @__PURE__ */ e("div", { className: "hb-sp-skeleton" }, c)) }) : d ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: d }) : a.length === 0 ? /* @__PURE__ */ p("div", { className: "hb-sp-empty", children: [
       /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No tickets found" }),
       /* @__PURE__ */ e("button", { className: "hb-sp-btn hb-sp-btn-secondary", onClick: () => r({ id: "submit" }), children: "Submit a Ticket" })
-    ] }) : /* @__PURE__ */ e("div", { className: "hb-sp-list", children: o.map((d) => /* @__PURE__ */ p("button", { className: "hb-sp-list-item", onClick: () => r({ id: "ticket", ticketId: d.id }), children: [
+    ] }) : /* @__PURE__ */ e("div", { className: "hb-sp-list", children: a.map((c) => /* @__PURE__ */ p("button", { className: "hb-sp-list-item", onClick: () => r({ id: "ticket", ticketId: c.id }), children: [
       /* @__PURE__ */ p("div", { className: "hb-sp-ticket-top", children: [
-        /* @__PURE__ */ e("span", { className: "hb-sp-ticket-num", children: d.ticket_number }),
-        /* @__PURE__ */ e("span", { className: "hb-sp-badge", children: I[d.status] ?? d.status })
+        /* @__PURE__ */ e("span", { className: "hb-sp-ticket-num", children: c.ticket_number }),
+        /* @__PURE__ */ e("span", { className: "hb-sp-badge", children: O[c.status] ?? c.status })
       ] }),
-      /* @__PURE__ */ e("div", { className: "hb-sp-ticket-title", children: d.title }),
-      /* @__PURE__ */ e("div", { className: "hb-sp-ticket-meta", children: new Date(d.created_at).toLocaleDateString(void 0, { month: "short", day: "numeric", year: "numeric" }) })
-    ] }, d.id)) })
+      /* @__PURE__ */ e("div", { className: "hb-sp-ticket-title", children: c.title }),
+      /* @__PURE__ */ e("div", { className: "hb-sp-ticket-meta", children: new Date(c.created_at).toLocaleDateString(void 0, { month: "short", day: "numeric", year: "numeric" }) })
+    ] }, c.id)) })
   ] });
 }
-function rt({ ticketId: r }) {
-  const { ticket: t, activity: n, loading: o, error: l } = Oe(r), { addComment: c, submitting: d } = Fe(), [s, a] = h("");
-  return o ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading ticket…" }) : l || !t ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: l ?? "Ticket not found" }) : /* @__PURE__ */ p("div", { className: "hb-sp-detail-page", children: [
+function tt({ ticketId: r }) {
+  const { ticket: t, activity: n, loading: a, error: s } = Ie(r), { addComment: d, submitting: c } = He(), [o, l] = h("");
+  return a ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading ticket…" }) : s || !t ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: s ?? "Ticket not found" }) : /* @__PURE__ */ p("div", { className: "hb-sp-detail-page", children: [
     /* @__PURE__ */ p("div", { className: "hb-sp-detail-header", children: [
       /* @__PURE__ */ e("span", { className: "hb-sp-ticket-num", children: t.ticket_number }),
-      /* @__PURE__ */ e("span", { className: "hb-sp-badge", children: I[t.status] ?? t.status })
+      /* @__PURE__ */ e("span", { className: "hb-sp-badge", children: O[t.status] ?? t.status })
     ] }),
     /* @__PURE__ */ e("div", { className: "hb-sp-detail-title", children: t.title }),
     /* @__PURE__ */ e("div", { className: "hb-sp-detail-desc", children: t.description }),
@@ -2348,75 +2403,75 @@ function rt({ ticketId: r }) {
           className: "hb-sp-textarea",
           rows: 3,
           placeholder: "Add a comment…",
-          value: s,
-          onChange: (i) => a(i.target.value)
+          value: o,
+          onChange: (i) => l(i.target.value)
         }
       ),
       /* @__PURE__ */ e(
         "button",
         {
           className: "hb-sp-btn hb-sp-btn-primary",
-          disabled: d || !s.trim(),
+          disabled: c || !o.trim(),
           onClick: async () => {
-            await c(t.id, s.trim()) && a("");
+            await d(t.id, o.trim()) && l("");
           },
-          children: d ? "Sending…" : "Send"
+          children: c ? "Sending…" : "Send"
         }
       )
     ] })
   ] });
 }
-function nt() {
-  const { releases: r, loading: t, error: n } = Ue();
-  return t ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading releases…" }) : n ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: n }) : r.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No releases yet." }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list-page", children: r.map((o, l) => /* @__PURE__ */ p("div", { className: "hb-sp-release", children: [
+function rt() {
+  const { releases: r, loading: t, error: n } = Fe();
+  return t ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading releases…" }) : n ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: n }) : r.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No releases yet." }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list-page", children: r.map((a, s) => /* @__PURE__ */ p("div", { className: "hb-sp-release", children: [
     /* @__PURE__ */ p("div", { className: "hb-sp-release-header", children: [
       /* @__PURE__ */ p("span", { className: "hb-sp-release-ver", children: [
         "v",
-        o.version
+        a.version
       ] }),
-      /* @__PURE__ */ e("span", { className: "hb-sp-release-date", children: new Date(o.released_date).toLocaleDateString(void 0, { month: "short", day: "numeric", year: "numeric" }) })
+      /* @__PURE__ */ e("span", { className: "hb-sp-release-date", children: new Date(a.released_date).toLocaleDateString(void 0, { month: "short", day: "numeric", year: "numeric" }) })
     ] }),
-    /* @__PURE__ */ e("div", { className: "hb-sp-release-title", children: o.title }),
-    /* @__PURE__ */ e("div", { className: "hb-sp-release-notes", children: o.release_notes })
-  ] }, l)) });
+    /* @__PURE__ */ e("div", { className: "hb-sp-release-title", children: a.title }),
+    /* @__PURE__ */ e("div", { className: "hb-sp-release-notes", children: a.release_notes })
+  ] }, s)) });
 }
-const it = {
+const nt = {
   proposed: "Proposed",
   planned: "Planned",
   in_progress: "In Progress",
   shipped: "Shipped",
   cancelled: "Cancelled"
 };
-function at() {
-  const { features: r, loading: t, error: n } = je(), { vote: o, voting: l } = Ke(), [c, d] = h(/* @__PURE__ */ new Set());
-  return t ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading features…" }) : n ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: n }) : r.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No feature requests yet." }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list-page", children: r.map((s) => {
-    var a;
+function it() {
+  const { features: r, loading: t, error: n } = Ue(), { vote: a, voting: s } = je(), [d, c] = h(/* @__PURE__ */ new Set());
+  return t ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading features…" }) : n ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: n }) : r.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No feature requests yet." }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list-page", children: r.map((o) => {
+    var l;
     return /* @__PURE__ */ p("div", { className: "hb-sp-feature-item", children: [
       /* @__PURE__ */ p("div", { className: "hb-sp-feature-body", children: [
-        /* @__PURE__ */ e("div", { className: "hb-sp-feature-title", children: s.title }),
-        /* @__PURE__ */ e("div", { className: "hb-sp-feature-desc", children: s.description }),
-        /* @__PURE__ */ e("span", { className: "hb-sp-badge", children: it[s.status] ?? s.status })
+        /* @__PURE__ */ e("div", { className: "hb-sp-feature-title", children: o.title }),
+        /* @__PURE__ */ e("div", { className: "hb-sp-feature-desc", children: o.description }),
+        /* @__PURE__ */ e("span", { className: "hb-sp-badge", children: nt[o.status] ?? o.status })
       ] }),
       /* @__PURE__ */ p(
         "button",
         {
-          className: `hb-sp-vote-btn${c.has(s.id) ? " voted" : ""}`,
-          disabled: l === s.id,
+          className: `hb-sp-vote-btn${d.has(o.id) ? " voted" : ""}`,
+          disabled: s === o.id,
           onClick: async () => {
-            await o(s.id) && d((b) => /* @__PURE__ */ new Set([...b, s.id]));
+            await a(o.id) && c((b) => /* @__PURE__ */ new Set([...b, o.id]));
           },
           children: [
             "▲ ",
-            ((a = s.tags) == null ? void 0 : a.length) ?? 0
+            ((l = o.tags) == null ? void 0 : l.length) ?? 0
           ]
         }
       )
-    ] }, s.id);
+    ] }, o.id);
   }) });
 }
-function ot({ onNav: r, category: t }) {
-  const { categories: n, loading: o } = qe(), { articles: l, loading: c } = De(t), { search: d, results: s, loading: a } = We(), [i, b] = h(""), f = C(null), k = (m) => {
-    b(m), f.current && clearTimeout(f.current), f.current = setTimeout(() => d(m), 300);
+function at({ onNav: r, category: t }) {
+  const { categories: n, loading: a } = Ke(), { articles: s, loading: d } = qe(t), { search: c, results: o, loading: l } = De(), [i, b] = h(""), u = M(null), v = (m) => {
+    b(m), u.current && clearTimeout(u.current), u.current = setTimeout(() => c(m), 300);
   }, y = i.trim().length > 0;
   return /* @__PURE__ */ p("div", { className: "hb-sp-list-page", children: [
     /* @__PURE__ */ e("div", { className: "hb-sp-search-row", children: /* @__PURE__ */ e(
@@ -2425,31 +2480,31 @@ function ot({ onNav: r, category: t }) {
         className: "hb-sp-input",
         placeholder: "Search knowledge base…",
         value: i,
-        onChange: (m) => k(m.target.value)
+        onChange: (m) => v(m.target.value)
       }
     ) }),
-    y ? a ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Searching…" }) : s.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ p("div", { className: "hb-sp-empty-text", children: [
+    y ? l ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Searching…" }) : o.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ p("div", { className: "hb-sp-empty-text", children: [
       'No results for "',
       i,
       '"'
-    ] }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list", children: s.map((m) => /* @__PURE__ */ p("button", { className: "hb-sp-list-item", onClick: () => r({ id: "kb-article", slug: m.slug }), children: [
+    ] }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list", children: o.map((m) => /* @__PURE__ */ p("button", { className: "hb-sp-list-item", onClick: () => r({ id: "kb-article", slug: m.slug }), children: [
       /* @__PURE__ */ e("div", { className: "hb-sp-ticket-title", children: m.title }),
       m.excerpt && /* @__PURE__ */ e("div", { className: "hb-sp-ticket-meta", children: m.excerpt })
     ] }, m.id)) }) : /* @__PURE__ */ p($, { children: [
-      !t && !o && n.length > 0 && /* @__PURE__ */ e("div", { className: "hb-sp-kb-cats", children: n.map((m) => /* @__PURE__ */ p("button", { className: "hb-sp-kb-cat", onClick: () => r({ id: "kb", category: m.slug }), children: [
+      !t && !a && n.length > 0 && /* @__PURE__ */ e("div", { className: "hb-sp-kb-cats", children: n.map((m) => /* @__PURE__ */ p("button", { className: "hb-sp-kb-cat", onClick: () => r({ id: "kb", category: m.slug }), children: [
         /* @__PURE__ */ e("span", { children: m.name }),
         /* @__PURE__ */ e("span", { className: "hb-sp-kb-cat-count", children: m.article_count })
       ] }, m.id)) }),
-      c ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading…" }) : l.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No articles in this category." }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list", children: l.map((m) => /* @__PURE__ */ p("button", { className: "hb-sp-list-item", onClick: () => r({ id: "kb-article", slug: m.slug }), children: [
+      d ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading…" }) : s.length === 0 ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "No articles in this category." }) }) : /* @__PURE__ */ e("div", { className: "hb-sp-list", children: s.map((m) => /* @__PURE__ */ p("button", { className: "hb-sp-list-item", onClick: () => r({ id: "kb-article", slug: m.slug }), children: [
         /* @__PURE__ */ e("div", { className: "hb-sp-ticket-title", children: m.title }),
         m.excerpt && /* @__PURE__ */ e("div", { className: "hb-sp-ticket-meta", children: m.excerpt })
       ] }, m.id)) })
     ] })
   ] });
 }
-function st({ slug: r }) {
-  const { article: t, loading: n, error: o } = Ve(r);
-  return n ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading article…" }) : o || !t ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: o ?? "Article not found" }) : /* @__PURE__ */ p("div", { className: "hb-sp-detail-page", children: [
+function ot({ slug: r }) {
+  const { article: t, loading: n, error: a } = Ve(r);
+  return n ? /* @__PURE__ */ e("div", { className: "hb-sp-loading", children: "Loading article…" }) : a || !t ? /* @__PURE__ */ e("div", { className: "hb-sp-error", children: a ?? "Article not found" }) : /* @__PURE__ */ p("div", { className: "hb-sp-detail-page", children: [
     /* @__PURE__ */ e("div", { className: "hb-sp-detail-title", children: t.title }),
     /* @__PURE__ */ e(
       "div",
@@ -2460,45 +2515,45 @@ function st({ slug: r }) {
     )
   ] });
 }
-function lt({ page: r, onNav: t }) {
-  return r.id === "hub" ? /* @__PURE__ */ e(Ye, { onNav: t }) : r.id === "submit" ? /* @__PURE__ */ e(et, { initialType: r.ticketType, onNav: t }) : r.id === "tickets" ? /* @__PURE__ */ e(tt, { onNav: t }) : r.id === "ticket" ? /* @__PURE__ */ e(rt, { ticketId: r.ticketId }) : r.id === "changelog" ? /* @__PURE__ */ e(nt, {}) : r.id === "features" ? /* @__PURE__ */ e(at, {}) : r.id === "kb" ? /* @__PURE__ */ e(ot, { onNav: t, category: r.category }) : r.id === "kb-article" ? /* @__PURE__ */ e(st, { slug: r.slug }) : r.id === "chat" ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "Live chat coming soon." }) }) : null;
+function st({ page: r, onNav: t }) {
+  return r.id === "hub" ? /* @__PURE__ */ e(Ge, { onNav: t }) : r.id === "submit" ? /* @__PURE__ */ e(Ze, { initialType: r.ticketType, onNav: t }) : r.id === "tickets" ? /* @__PURE__ */ e(et, { onNav: t }) : r.id === "ticket" ? /* @__PURE__ */ e(tt, { ticketId: r.ticketId }) : r.id === "changelog" ? /* @__PURE__ */ e(rt, {}) : r.id === "features" ? /* @__PURE__ */ e(it, {}) : r.id === "kb" ? /* @__PURE__ */ e(at, { onNav: t, category: r.category }) : r.id === "kb-article" ? /* @__PURE__ */ e(ot, { slug: r.slug }) : r.id === "chat" ? /* @__PURE__ */ e("div", { className: "hb-sp-empty", children: /* @__PURE__ */ e("div", { className: "hb-sp-empty-text", children: "Live chat coming soon." }) }) : null;
 }
-function ct({ config: r, user: t }) {
-  const [n, o] = h(!1), [l, c] = h({ id: "hub" }), [d, s] = h([]), a = C(null), i = w((v) => {
-    s((g) => [...g, l]), c(v), a.current && (a.current.scrollTop = 0);
-  }, [l]), b = w(() => {
-    s((v) => {
-      const g = [...v], u = g.pop();
-      return u && c(u), g;
-    }), a.current && (a.current.scrollTop = 0);
-  }, []), f = w(() => {
-    o(!1), setTimeout(() => {
-      c({ id: "hub" }), s([]);
+function lt({ config: r, user: t }) {
+  const [n, a] = h(!1), [s, d] = h({ id: "hub" }), [c, o] = h([]), l = M(null), i = w((k) => {
+    o((g) => [...g, s]), d(k), l.current && (l.current.scrollTop = 0);
+  }, [s]), b = w(() => {
+    o((k) => {
+      const g = [...k], f = g.pop();
+      return f && d(f), g;
+    }), l.current && (l.current.scrollTop = 0);
+  }, []), u = w(() => {
+    a(!1), setTimeout(() => {
+      d({ id: "hub" }), o([]);
     }, 200);
   }, []);
   N(() => {
     if (!n) return;
-    const v = (g) => {
-      g.key === "Escape" && f();
+    const k = (g) => {
+      g.key === "Escape" && u();
     };
-    return document.addEventListener("keydown", v), () => document.removeEventListener("keydown", v);
-  }, [n, f]);
-  const k = d.length > 0, y = Je[l.id] ?? "Support", m = n ? U(
-    /* @__PURE__ */ e("div", { className: "hb-sp-overlay", onClick: f, "aria-hidden": "true", children: /* @__PURE__ */ p(
+    return document.addEventListener("keydown", k), () => document.removeEventListener("keydown", k);
+  }, [n, u]);
+  const v = c.length > 0, y = We[s.id] ?? "Support", m = n ? U(
+    /* @__PURE__ */ e("div", { className: "hb-sp-overlay", onClick: u, "aria-hidden": "true", children: /* @__PURE__ */ p(
       "div",
       {
         className: `hb-sp-panel${n ? " open" : ""}`,
-        onClick: (v) => v.stopPropagation(),
+        onClick: (k) => k.stopPropagation(),
         role: "dialog",
         "aria-modal": "true",
         "aria-label": "Support",
         children: [
           /* @__PURE__ */ p("div", { className: "hb-sp-header", children: [
-            k ? /* @__PURE__ */ e("button", { className: "hb-sp-back-btn", onClick: b, "aria-label": "Go back", children: "‹ Back" }) : /* @__PURE__ */ e("div", { className: "hb-sp-header-title", children: y }),
-            k && /* @__PURE__ */ e("div", { className: "hb-sp-header-title", children: y }),
-            /* @__PURE__ */ e("button", { className: "hb-sp-close-btn", onClick: f, "aria-label": "Close support panel", children: /* @__PURE__ */ e(R, { size: 16 }) })
+            v ? /* @__PURE__ */ e("button", { className: "hb-sp-back-btn", onClick: b, "aria-label": "Go back", children: "‹ Back" }) : /* @__PURE__ */ e("div", { className: "hb-sp-header-title", children: y }),
+            v && /* @__PURE__ */ e("div", { className: "hb-sp-header-title", children: y }),
+            /* @__PURE__ */ e("button", { className: "hb-sp-close-btn", onClick: u, "aria-label": "Close support panel", children: /* @__PURE__ */ e(B, { size: 16 }) })
           ] }),
-          /* @__PURE__ */ e("div", { className: "hb-sp-content", ref: a, children: /* @__PURE__ */ e(Be, { config: r, user: t, children: /* @__PURE__ */ e(lt, { page: l, onNav: i }) }) })
+          /* @__PURE__ */ e("div", { className: "hb-sp-content", ref: l, children: /* @__PURE__ */ e(Re, { config: r, user: t, children: /* @__PURE__ */ e(st, { page: s, onNav: i }) }) })
         ]
       }
     ) }),
@@ -2512,14 +2567,14 @@ function ct({ config: r, user: t }) {
         title: "Support",
         "aria-label": "Open support panel",
         "aria-expanded": n,
-        onClick: () => o((v) => !v),
-        children: /* @__PURE__ */ e(ie, { size: 18 })
+        onClick: () => a((k) => !k),
+        children: /* @__PURE__ */ e(ne, { size: 18 })
       }
     ),
     m
   ] });
 }
-function dt() {
+function ct() {
   return /* @__PURE__ */ e(
     "svg",
     {
@@ -2537,127 +2592,138 @@ function ut({
   currentProduct: r,
   apiBase: t,
   signalrEndpoint: n,
-  session: o,
-  onLogout: l,
-  hubUrl: c = j,
-  chatSlot: d,
-  supportConfig: s
+  session: a,
+  onLogout: s,
+  hubUrl: d = R,
+  chatSlot: c,
+  supportConfig: o
 }) {
-  const a = G(o), { products: i } = Y(t, (a == null ? void 0 : a.tenantId) ?? null), { notifications: b, unreadCount: f, markAllRead: k, markRead: y } = X(
+  const l = J(a);
+  return l ? /* @__PURE__ */ e(
+    dt,
+    {
+      currentProduct: r,
+      apiBase: t,
+      signalrEndpoint: n,
+      session: l,
+      onLogout: s,
+      hubUrl: d,
+      chatSlot: c,
+      supportConfig: o
+    }
+  ) : null;
+}
+function dt({
+  currentProduct: r,
+  apiBase: t,
+  signalrEndpoint: n,
+  session: a,
+  onLogout: s,
+  hubUrl: d = R,
+  chatSlot: c,
+  supportConfig: o
+}) {
+  const { products: l } = G(t, a.tenantId ?? null), { notifications: i, unreadCount: b, markAllRead: u, markRead: v } = Y(
     t,
     n,
-    (a == null ? void 0 : a.tenantId) ?? null
-  ), [m, v] = h(!1), [g, u] = h(!1), [O, T] = h(!1), A = C(!1);
+    a.tenantId ?? null
+  ), [y, m] = h(!1), [k, g] = h(!1), [f, T] = h(!1), A = M(!1);
   return N(() => {
     if (A.current || (A.current = !0, document.getElementById("hb-styles"))) return;
-    const M = document.createElement("style");
-    M.id = "hb-styles", M.textContent = D, document.head.appendChild(M);
+    const S = document.createElement("style");
+    S.id = "hb-styles", S.textContent = q, document.head.appendChild(S);
   }, []), N(() => {
-    const S = document.body.style.paddingTop;
-    return document.body.style.paddingTop = `${q}px`, () => {
-      document.body.style.paddingTop = S;
+    const C = document.body.style.paddingTop;
+    return document.body.style.paddingTop = `${K}px`, () => {
+      document.body.style.paddingTop = C;
     };
   }, []), /* @__PURE__ */ e("div", { className: "hb-root", role: "banner", children: /* @__PURE__ */ p("div", { className: "hb-bar", children: [
     /* @__PURE__ */ e(
-      Te,
+      Se,
       {
         currentProduct: r,
-        products: i,
-        open: m,
+        products: l,
+        open: y,
         onToggle: () => {
-          u(!1), T(!1), v((S) => !S);
+          g(!1), T(!1), m((C) => !C);
         },
-        onClose: () => v(!1),
-        hubUrl: c
+        onClose: () => m(!1),
+        hubUrl: d
       }
     ),
-    /* @__PURE__ */ p("a", { href: c, className: "hb-logo", "aria-label": "The One Family — Home", children: [
-      /* @__PURE__ */ e(dt, {}),
+    /* @__PURE__ */ p("a", { href: d, className: "hb-logo", "aria-label": "The One Family — Home", children: [
+      /* @__PURE__ */ e(ct, {}),
       /* @__PURE__ */ e("span", { className: "hb-logo-name", children: "The One" })
     ] }),
     /* @__PURE__ */ e("div", { className: "hb-divider", "aria-hidden": "true" }),
     (() => {
-      const S = i.find((M) => M.id === r);
-      return S ? /* @__PURE__ */ e("span", { style: { fontSize: 14, fontWeight: 500, color: "#f1f5f9", whiteSpace: "nowrap" }, children: S.name }) : null;
+      const C = l.find((S) => S.id === r);
+      return C ? /* @__PURE__ */ e("span", { style: { fontSize: 14, fontWeight: 500, color: "#f1f5f9", whiteSpace: "nowrap" }, children: C.name }) : null;
     })(),
     /* @__PURE__ */ e("div", { style: { flex: 1 } }),
-    /* @__PURE__ */ e(Le, { apiBase: t, tenantId: (a == null ? void 0 : a.tenantId) ?? null }),
+    /* @__PURE__ */ e($e, { apiBase: t, tenantId: (a == null ? void 0 : a.tenantId) ?? null }),
     /* @__PURE__ */ e("div", { style: { flex: 1 } }),
-    s ? /* @__PURE__ */ e(
-      ct,
+    o ? /* @__PURE__ */ e(
+      lt,
       {
-        config: s,
+        config: o,
         user: {
           email: (a == null ? void 0 : a.email) ?? "",
           name: a ? `${a.firstName ?? ""} ${a.lastName ?? ""}`.trim() || a.email : ""
         }
       }
-    ) : d ?? /* @__PURE__ */ e(
+    ) : c ?? /* @__PURE__ */ e(
       "button",
       {
         className: "hb-chat-btn",
         title: "Chat — Coming Soon",
         "aria-label": "Chat — Coming Soon",
-        children: /* @__PURE__ */ e(ne, { size: 18 })
+        children: /* @__PURE__ */ e(re, { size: 18 })
+      }
+    ),
+    /* @__PURE__ */ e(
+      Ee,
+      {
+        notifications: i,
+        unreadCount: b,
+        open: k,
+        onToggle: () => {
+          m(!1), T(!1), g((C) => !C);
+        },
+        onClose: () => g(!1),
+        onMarkAllRead: u,
+        onMarkRead: v,
+        hubUrl: d
       }
     ),
     /* @__PURE__ */ e(
       Ae,
       {
-        notifications: b,
-        unreadCount: f,
-        open: g,
-        onToggle: () => {
-          v(!1), T(!1), u((S) => !S);
-        },
-        onClose: () => u(!1),
-        onMarkAllRead: k,
-        onMarkRead: y,
-        hubUrl: c
-      }
-    ),
-    a ? /* @__PURE__ */ e(
-      Pe,
-      {
         session: a,
-        open: O,
+        open: f,
         onToggle: () => {
-          v(!1), u(!1), T((S) => !S);
+          m(!1), g(!1), T((C) => !C);
         },
         onClose: () => T(!1),
-        onLogout: l,
-        hubUrl: c
-      }
-    ) : /* @__PURE__ */ e(
-      "a",
-      {
-        href: `${c}/login`,
-        style: {
-          fontSize: 13,
-          color: "#f97316",
-          fontWeight: 500,
-          padding: "4px 10px",
-          borderRadius: 6,
-          textDecoration: "none"
-        },
-        children: "Sign In"
+        onLogout: s,
+        hubUrl: d
       }
     )
   ] }) });
 }
 export {
   L as ALL_PRODUCTS,
-  q as HUB_BAR_HEIGHT,
-  j as HUB_URL,
+  K as HUB_BAR_HEIGHT,
+  R as HUB_URL,
   ut as HubBar,
-  Ae as NotificationBell,
-  Te as ProductSwitcher,
-  K as SEVERITY_COLORS,
-  ct as SupportButton,
-  Le as UnifiedSearch,
-  Pe as UserMenu,
-  G as useHubSession,
-  X as useNotifications,
-  Y as useProducts,
-  $e as useSearch
+  Ee as NotificationBell,
+  Se as ProductSwitcher,
+  j as SEVERITY_COLORS,
+  lt as SupportButton,
+  $e as UnifiedSearch,
+  Ae as UserMenu,
+  J as useHubSession,
+  Y as useNotifications,
+  G as useProducts,
+  Te as useSearch
 };

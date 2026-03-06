@@ -5,9 +5,9 @@ export declare const ALL_PRODUCTS: Omit<Product, 'active'>[];
 
 export declare const HUB_BAR_HEIGHT = 48;
 
-export declare const HUB_URL = "https://my.theonefamily.app";
+export declare const HUB_URL = "https://my.theonestack.com";
 
-export declare function HubBar({ currentProduct, apiBase, signalrEndpoint, session: sessionOverride, onLogout, hubUrl, chatSlot, supportConfig, }: HubBarProps): JSX.Element;
+export declare function HubBar({ currentProduct, apiBase, signalrEndpoint, session: sessionOverride, onLogout, hubUrl, chatSlot, supportConfig, }: HubBarProps): JSX.Element | null;
 
 export declare interface HubBarProps {
     currentProduct: ProductId;
@@ -28,6 +28,8 @@ export declare interface HubSession {
     tenantName: string;
     email: string;
     role: string;
+    orgRole?: 'owner' | 'admin' | 'member' | 'viewer';
+    entitlements?: string[];
     firstName?: string;
     lastName?: string;
     initials: string;
@@ -68,7 +70,7 @@ export declare interface Product {
     color: string;
 }
 
-export declare type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas';
+export declare type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission';
 
 export declare function ProductSwitcher({ currentProduct, products, open, onToggle, onClose, hubUrl, }: ProductSwitcherProps): JSX.Element;
 
