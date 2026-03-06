@@ -1,5 +1,6 @@
 import { Outlet, Link } from 'react-router-dom';
 import { HubBar } from '@theonefamily/hub-bar';
+import { AnimatedPage } from '@theonefamily/ui';
 import { useAuth } from '@/hooks/useAuth';
 import { Sidebar } from './Sidebar';
 import { BirdSymbol } from '@/components/BirdSymbol';
@@ -39,7 +40,7 @@ export function DashboardLayout() {
       <div className="flex flex-1">
         <Sidebar />
         <main className="flex-1 p-6 overflow-auto">
-          <Outlet />
+          <AnimatedPage><Outlet /></AnimatedPage>
         </main>
       </div>
     </div>

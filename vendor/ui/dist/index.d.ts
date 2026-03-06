@@ -22,6 +22,7 @@ import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
 import * as CollapsiblePrimitive from '@radix-ui/react-collapsible';
+import { Variants, HTMLMotionProps } from 'framer-motion';
 
 /**
  * setAccent — sets the product accent color as CSS custom properties on :root.
@@ -747,4 +748,222 @@ interface SettingsPageProps {
 }
 declare function SettingsPage({ title, navigation, defaultSection, renderSection, className, }: SettingsPageProps): react_jsx_runtime.JSX.Element;
 
-export { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger, AppShell, type AppShellProduct, type AppShellProps, type AppShellTenant, type AppShellUser, Avatar, AvatarFallback, AvatarImage, Badge, type BadgeProps, BirdSymbol, Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Button, type ButtonProps, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Checkbox, Collapsible, CollapsibleContent, CollapsibleTrigger, type ColumnDef, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut, DatePicker, DetailPage, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger, EmptyState, FaviconHead, Form, FormField, Input, type InputProps, Label, type LabelProps, ListPage, LoginPage, MobileNav, NavGroup, NavItem, type NavItemDef, type NavSection, PageHeader, Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, ProductLogo, Progress, RadioGroup, RadioGroupItem, ScrollArea, ScrollBar, Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger, SelectValue, Separator, SettingsPage, Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetOverlay, SheetPortal, SheetTitle, SheetTrigger, Sidebar, Skeleton, Spinner, StatCard, Switch, Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, TenantSwitcher, Textarea, type TextareaProps, TheOneBadge, Toaster, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TopBar, UserMenu, badgeVariants, buttonVariants, cn, setAccent, uiPreset, useFormField };
+declare const MOTION: {
+    readonly page: {
+        readonly initial: {
+            readonly opacity: 0;
+            readonly y: 20;
+        };
+        readonly animate: {
+            readonly opacity: 1;
+            readonly y: 0;
+        };
+        readonly exit: {
+            readonly opacity: 0;
+        };
+        readonly transition: {
+            duration: number;
+            ease: "easeOut";
+        };
+    };
+    readonly stagger: {
+        readonly staggerChildren: 0.03;
+    };
+    readonly card: {
+        readonly whileHover: {
+            readonly y: -2;
+            readonly transition: {
+                readonly duration: 0.2;
+            };
+        };
+    };
+    readonly press: {
+        readonly whileTap: {
+            readonly scale: 0.97;
+        };
+    };
+    readonly fadeIn: {
+        readonly initial: {
+            readonly opacity: 0;
+        };
+        readonly animate: {
+            readonly opacity: 1;
+        };
+        readonly transition: {
+            duration: number;
+        };
+    };
+    readonly slideUp: {
+        readonly initial: {
+            readonly opacity: 0;
+            readonly y: 20;
+        };
+        readonly animate: {
+            readonly opacity: 1;
+            readonly y: 0;
+        };
+    };
+    readonly popIn: {
+        readonly initial: {
+            readonly scale: 0;
+            readonly opacity: 0;
+        };
+        readonly animate: {
+            readonly scale: 1;
+            readonly opacity: 1;
+        };
+        readonly transition: {
+            type: "spring";
+            stiffness: number;
+            damping: number;
+        };
+    };
+};
+declare const staggerContainer: Variants;
+declare const staggerItem: Variants;
+
+declare function useReducedMotion(): boolean;
+
+type Direction = 'up' | 'down' | 'left' | 'right';
+interface AnimatedPageProps {
+    children: React.ReactNode;
+    direction?: Direction;
+    duration?: number;
+    className?: string;
+}
+declare function AnimatedPage({ children, direction, duration, className, }: AnimatedPageProps): react_jsx_runtime.JSX.Element;
+
+interface AnimatedNumberProps {
+    value: number;
+    duration?: number;
+    decimals?: number;
+    prefix?: string;
+    suffix?: string;
+    className?: string;
+}
+declare function AnimatedNumber({ value, duration, decimals, prefix, suffix, className, }: AnimatedNumberProps): react_jsx_runtime.JSX.Element;
+
+interface SkeletonTextProps {
+    lines?: number;
+    className?: string;
+}
+declare function SkeletonText({ lines, className }: SkeletonTextProps): react_jsx_runtime.JSX.Element;
+
+interface SkeletonCardProps {
+    className?: string;
+}
+declare function SkeletonCard({ className }: SkeletonCardProps): react_jsx_runtime.JSX.Element;
+
+interface SkeletonTableProps {
+    rows?: number;
+    columns?: number;
+    className?: string;
+}
+declare function SkeletonTable({ rows, columns, className }: SkeletonTableProps): react_jsx_runtime.JSX.Element;
+
+interface SkeletonAvatarProps {
+    size?: number;
+    className?: string;
+}
+declare function SkeletonAvatar({ size, className }: SkeletonAvatarProps): react_jsx_runtime.JSX.Element;
+
+interface AnimatedEmptyStateProps {
+    icon: LucideIcon;
+    title: string;
+    description?: string;
+    action?: React.ReactNode;
+    className?: string;
+}
+declare function AnimatedEmptyState({ icon: Icon, title, description, action, className, }: AnimatedEmptyStateProps): react_jsx_runtime.JSX.Element;
+
+interface AnimatedButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'>, VariantProps<typeof buttonVariants> {
+    loading?: boolean;
+    success?: boolean;
+    successDuration?: number;
+}
+declare const AnimatedButton: React.ForwardRefExoticComponent<AnimatedButtonProps & React.RefAttributes<HTMLButtonElement>>;
+
+interface GlassCardProps {
+    hover?: boolean;
+    accent?: string;
+    children?: React.ReactNode;
+    className?: string;
+    style?: React.CSSProperties;
+    onClick?: () => void;
+}
+declare const GlassCard: React.ForwardRefExoticComponent<GlassCardProps & React.RefAttributes<HTMLDivElement>>;
+
+interface AnimatedListProps {
+    children: React.ReactNode;
+    className?: string;
+    staggerDelay?: number;
+}
+declare function AnimatedList({ children, className, staggerDelay, }: AnimatedListProps): react_jsx_runtime.JSX.Element;
+interface AnimatedListItemProps {
+    children: React.ReactNode;
+    className?: string;
+    layoutId?: string;
+}
+declare function AnimatedListItem({ children, className, layoutId, }: AnimatedListItemProps): react_jsx_runtime.JSX.Element;
+
+interface AnimatedModalProps {
+    open: boolean;
+    onClose: () => void;
+    children: React.ReactNode;
+    className?: string;
+}
+declare function AnimatedModal({ open, onClose, children, className, }: AnimatedModalProps): react_jsx_runtime.JSX.Element;
+
+type ToastType = 'success' | 'error' | 'info' | 'warning';
+interface ToastItem {
+    id: string;
+    type: ToastType;
+    title: string;
+    description?: string;
+    duration?: number;
+}
+interface ToastContextValue {
+    toast: (opts: Omit<ToastItem, 'id'>) => void;
+    success: (title: string, description?: string) => void;
+    error: (title: string, description?: string) => void;
+    info: (title: string, description?: string) => void;
+    warning: (title: string, description?: string) => void;
+}
+declare function useToast(): ToastContextValue;
+declare function ToastProvider({ children }: {
+    children: React.ReactNode;
+}): react_jsx_runtime.JSX.Element;
+
+/**
+ * Returns inline style props for a hover glow effect.
+ * Apply the returned `style` and event handlers to your element.
+ */
+declare function useHoverGlow(accentColor: string): {
+    style: React.CSSProperties;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
+};
+/**
+ * Returns framer-motion-compatible props for press-to-scale.
+ */
+declare function usePressScale(scale?: number): {
+    whileTap?: undefined;
+} | {
+    whileTap: {
+        scale: number;
+    };
+};
+/**
+ * Fades + slides an element in when it enters the viewport.
+ * Returns a ref to attach to the target element.
+ */
+declare function useRevealOnScroll<T extends HTMLElement = HTMLDivElement>(options?: {
+    threshold?: number;
+    rootMargin?: string;
+}): {
+    ref: React.RefObject<T | null>;
+    style: React.CSSProperties;
+    revealed: boolean;
+};
+
+export { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger, AnimatedButton, type AnimatedButtonProps, AnimatedEmptyState, type AnimatedEmptyStateProps, AnimatedList, AnimatedListItem, type AnimatedListItemProps, type AnimatedListProps, AnimatedModal, type AnimatedModalProps, AnimatedNumber, type AnimatedNumberProps, AnimatedPage, type AnimatedPageProps, AppShell, type AppShellProduct, type AppShellProps, type AppShellTenant, type AppShellUser, Avatar, AvatarFallback, AvatarImage, Badge, type BadgeProps, BirdSymbol, Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Button, type ButtonProps, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Checkbox, Collapsible, CollapsibleContent, CollapsibleTrigger, type ColumnDef, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut, DatePicker, DetailPage, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger, EmptyState, FaviconHead, Form, FormField, GlassCard, type GlassCardProps, Input, type InputProps, Label, type LabelProps, ListPage, LoginPage, MOTION, MobileNav, NavGroup, NavItem, type NavItemDef, type NavSection, PageHeader, Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, ProductLogo, Progress, RadioGroup, RadioGroupItem, ScrollArea, ScrollBar, Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger, SelectValue, Separator, SettingsPage, Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetOverlay, SheetPortal, SheetTitle, SheetTrigger, Sidebar, Skeleton, SkeletonAvatar, type SkeletonAvatarProps, SkeletonCard, type SkeletonCardProps, SkeletonTable, type SkeletonTableProps, SkeletonText, type SkeletonTextProps, Spinner, StatCard, Switch, Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, TenantSwitcher, Textarea, type TextareaProps, TheOneBadge, ToastProvider, Toaster, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TopBar, UserMenu, badgeVariants, buttonVariants, cn, setAccent, staggerContainer, staggerItem, uiPreset, useFormField, useHoverGlow, usePressScale, useReducedMotion, useRevealOnScroll, useToast };

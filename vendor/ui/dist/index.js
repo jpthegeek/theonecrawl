@@ -3,7 +3,7 @@ import { twMerge } from 'tailwind-merge';
 import { cva } from 'class-variance-authority';
 export { cva, cx } from 'class-variance-authority';
 import { jsx, jsxs, Fragment } from 'react/jsx-runtime';
-import React16, { createContext, useState, useEffect, useContext } from 'react';
+import React16, { createContext, useState, useRef, useEffect, useContext, useCallback, useMemo } from 'react';
 import { ChevronDown, ChevronUp, Check, Circle, X, ChevronRight, Search, ChevronsUpDown, User, Settings, LogOut, ChevronLeft, Menu, HelpCircle, Loader2, TrendingUp, TrendingDown, Minus, MoreHorizontal, CalendarIcon, EyeOff, Eye, Shield, ArrowLeft } from 'lucide-react';
 import * as DropdownMenuPrimitive3 from '@radix-ui/react-dropdown-menu';
 import { useLocation, Link } from 'react-router-dom';
@@ -26,6 +26,7 @@ import * as AvatarPrimitive from '@radix-ui/react-avatar';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
 import * as CollapsiblePrimitive from '@radix-ui/react-collapsible';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // src/theme/accent.ts
 function setAccent(hex) {
@@ -2993,4 +2994,832 @@ function SettingsPage({
   ] });
 }
 
-export { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger, AppShell, Avatar, AvatarFallback, AvatarImage, Badge, BirdSymbol, Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Checkbox, Collapsible, CollapsibleContent2 as CollapsibleContent, CollapsibleTrigger2 as CollapsibleTrigger, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut, DatePicker, DetailPage, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger, EmptyState, FaviconHead, Form, FormField, Input, Label2 as Label, ListPage, LoginPage, MobileNav, NavGroup, NavItem, PageHeader, Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, ProductLogo, Progress, RadioGroup, RadioGroupItem, ScrollArea, ScrollBar, Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger, SelectValue, Separator3 as Separator, SettingsPage, Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetOverlay, SheetPortal, SheetTitle, SheetTrigger, Sidebar, Skeleton, Spinner, StatCard, Switch, Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, TenantSwitcher, Textarea, TheOneBadge, Toaster, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TopBar, UserMenu, badgeVariants, buttonVariants, cn, setAccent, uiPreset, useFormField };
+// src/motion/presets.ts
+var MOTION = {
+  page: {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0 },
+    transition: { duration: 0.2, ease: "easeOut" }
+  },
+  stagger: {
+    staggerChildren: 0.03
+  },
+  card: {
+    whileHover: { y: -2, transition: { duration: 0.2 } }
+  },
+  press: {
+    whileTap: { scale: 0.97 }
+  },
+  fadeIn: {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.3 }
+  },
+  slideUp: {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 }
+  },
+  popIn: {
+    initial: { scale: 0, opacity: 0 },
+    animate: { scale: 1, opacity: 1 },
+    transition: { type: "spring", stiffness: 300, damping: 20 }
+  }
+};
+var staggerContainer = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.03 }
+  }
+};
+var staggerItem = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } }
+};
+function useReducedMotion() {
+  const [reduced, setReduced] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e) => setReduced(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return reduced;
+}
+var offsets = {
+  up: { x: 0, y: 20 },
+  down: { x: 0, y: -20 },
+  left: { x: 20, y: 0 },
+  right: { x: -20, y: 0 }
+};
+function AnimatedPage({
+  children,
+  direction = "up",
+  duration = 0.2,
+  className
+}) {
+  const reduced = useReducedMotion();
+  const offset = offsets[direction];
+  if (reduced) {
+    return /* @__PURE__ */ jsx("div", { className, children });
+  }
+  return /* @__PURE__ */ jsx(
+    motion.div,
+    {
+      initial: { opacity: 0, x: offset.x, y: offset.y },
+      animate: { opacity: 1, x: 0, y: 0 },
+      exit: { opacity: 0 },
+      transition: { duration, ease: "easeOut" },
+      className,
+      children
+    }
+  );
+}
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+function AnimatedNumber({
+  value,
+  duration = 1,
+  decimals = 0,
+  prefix = "",
+  suffix = "",
+  className
+}) {
+  const reduced = useReducedMotion();
+  const [display, setDisplay] = useState(reduced ? value : 0);
+  const [hasAnimated, setHasAnimated] = useState(false);
+  const ref = useRef(null);
+  const rafRef = useRef(0);
+  const formatNumber = useCallback(
+    (n) => {
+      return n.toLocaleString(void 0, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals
+      });
+    },
+    [decimals]
+  );
+  useEffect(() => {
+    if (reduced || hasAnimated) {
+      setDisplay(value);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          observer.disconnect();
+          setHasAnimated(true);
+          const start = performance.now();
+          const durationMs = duration * 1e3;
+          const tick = (now) => {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / durationMs, 1);
+            const eased = easeOutCubic(progress);
+            setDisplay(eased * value);
+            if (progress < 1) {
+              rafRef.current = requestAnimationFrame(tick);
+            } else {
+              setDisplay(value);
+            }
+          };
+          rafRef.current = requestAnimationFrame(tick);
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [value, duration, reduced, hasAnimated]);
+  useEffect(() => {
+    if (hasAnimated) setDisplay(value);
+  }, [value, hasAnimated]);
+  return /* @__PURE__ */ jsxs("span", { ref, className, children: [
+    prefix,
+    formatNumber(display),
+    suffix
+  ] });
+}
+function SkeletonText({ lines = 3, className }) {
+  return /* @__PURE__ */ jsx("div", { className: cn("space-y-2", className), children: Array.from({ length: lines }, (_, i) => /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: "skeleton-shimmer rounded",
+      style: {
+        height: "0.875rem",
+        width: i === lines - 1 ? "66%" : "100%"
+      }
+    },
+    i
+  )) });
+}
+function SkeletonCard({ className }) {
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: cn("rounded-lg p-6 space-y-4", className),
+      style: {
+        background: "var(--glass-bg)",
+        border: "1px solid var(--glass-border)"
+      },
+      children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-3", children: [
+          /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded-full", style: { width: 40, height: 40 } }),
+          /* @__PURE__ */ jsxs("div", { className: "flex-1 space-y-2", children: [
+            /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "0.875rem", width: "50%" } }),
+            /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "0.75rem", width: "30%" } })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "space-y-2", children: [
+          /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "0.875rem", width: "100%" } }),
+          /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "0.875rem", width: "90%" } }),
+          /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "0.875rem", width: "66%" } })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "flex gap-2 pt-2", children: [
+          /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "2rem", width: "5rem" } }),
+          /* @__PURE__ */ jsx("div", { className: "skeleton-shimmer rounded", style: { height: "2rem", width: "5rem" } })
+        ] })
+      ]
+    }
+  );
+}
+function SkeletonTable({ rows = 5, columns = 4, className }) {
+  return /* @__PURE__ */ jsxs("div", { className: cn("w-full", className), children: [
+    /* @__PURE__ */ jsx(
+      "div",
+      {
+        className: "flex gap-4 px-4 py-3 mb-1",
+        style: { borderBottom: "1px solid var(--glass-border)" },
+        children: Array.from({ length: columns }, (_, i) => /* @__PURE__ */ jsx(
+          "div",
+          {
+            className: "skeleton-shimmer rounded flex-1",
+            style: { height: "0.75rem" }
+          },
+          `h-${i}`
+        ))
+      }
+    ),
+    Array.from({ length: rows }, (_, r) => /* @__PURE__ */ jsx(
+      "div",
+      {
+        className: "flex gap-4 px-4 py-3",
+        style: { borderBottom: "1px solid var(--glass-border)" },
+        children: Array.from({ length: columns }, (_2, c) => /* @__PURE__ */ jsx(
+          "div",
+          {
+            className: "skeleton-shimmer rounded flex-1",
+            style: { height: "0.875rem" }
+          },
+          `${r}-${c}`
+        ))
+      },
+      r
+    ))
+  ] });
+}
+function SkeletonAvatar({ size = 40, className }) {
+  return /* @__PURE__ */ jsx(
+    "div",
+    {
+      className: cn("skeleton-shimmer rounded-full", className),
+      style: { width: size, height: size }
+    }
+  );
+}
+function AnimatedEmptyState({
+  icon: Icon2,
+  title,
+  description,
+  action,
+  className
+}) {
+  const reduced = useReducedMotion();
+  const iconAnimation = reduced ? {} : {
+    animate: {
+      y: [0, -6, 0],
+      transition: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+    }
+  };
+  return /* @__PURE__ */ jsxs(
+    "div",
+    {
+      className: cn(
+        "flex flex-col items-center justify-center py-16 px-8 text-center",
+        className
+      ),
+      children: [
+        /* @__PURE__ */ jsx(
+          motion.div,
+          {
+            className: "flex h-16 w-16 items-center justify-center rounded-2xl mb-5",
+            style: {
+              background: "rgba(113, 113, 122, 0.1)",
+              border: "1px solid rgba(113, 113, 122, 0.2)"
+            },
+            ...iconAnimation,
+            children: /* @__PURE__ */ jsx(Icon2, { size: 28, style: { color: "rgb(113, 113, 122)" } })
+          }
+        ),
+        /* @__PURE__ */ jsx(
+          "h3",
+          {
+            className: "text-base font-semibold mb-2",
+            style: { color: "var(--foreground)" },
+            children: title
+          }
+        ),
+        description && /* @__PURE__ */ jsx(
+          "p",
+          {
+            className: "text-sm max-w-xs mb-6",
+            style: { color: "var(--muted-foreground)" },
+            children: description
+          }
+        ),
+        action
+      ]
+    }
+  );
+}
+var AnimatedButton = React16.forwardRef(
+  ({
+    className,
+    variant,
+    size,
+    loading = false,
+    success = false,
+    successDuration = 1500,
+    disabled,
+    children,
+    ...props
+  }, ref) => {
+    const reduced = useReducedMotion();
+    const [state, setState] = useState("idle");
+    const widthRef = useRef(null);
+    const [minWidth, setMinWidth] = useState();
+    useEffect(() => {
+      const el = widthRef.current ?? ref?.current;
+      if (el && state === "idle") {
+        setMinWidth(el.offsetWidth);
+      }
+    }, [children, ref, state]);
+    useEffect(() => {
+      if (success) {
+        setState("success");
+        const t = setTimeout(() => setState("idle"), successDuration);
+        return () => clearTimeout(t);
+      } else if (loading) {
+        setState("loading");
+      } else {
+        setState("idle");
+      }
+    }, [loading, success, successDuration]);
+    const tapProps = reduced ? {} : {
+      whileTap: disabled || state !== "idle" ? void 0 : { scale: 0.97 }
+    };
+    return /* @__PURE__ */ jsx(
+      motion.button,
+      {
+        ref: ref ?? widthRef,
+        className: cn(buttonVariants({ variant, size }), className),
+        disabled: disabled || state === "loading",
+        style: {
+          "--tw-ring-color": "var(--ring)",
+          minWidth: minWidth ? `${minWidth}px` : void 0
+        },
+        transition: { type: "spring", stiffness: 400, damping: 25 },
+        ...tapProps,
+        ...props,
+        children: /* @__PURE__ */ jsxs(AnimatePresence, { mode: "wait", initial: false, children: [
+          state === "loading" && /* @__PURE__ */ jsx(
+            motion.span,
+            {
+              initial: reduced ? {} : { opacity: 0 },
+              animate: { opacity: 1 },
+              exit: reduced ? {} : { opacity: 0 },
+              transition: { duration: 0.15 },
+              className: "flex items-center gap-2",
+              children: /* @__PURE__ */ jsxs(
+                "svg",
+                {
+                  className: "animate-spin h-4 w-4",
+                  xmlns: "http://www.w3.org/2000/svg",
+                  fill: "none",
+                  viewBox: "0 0 24 24",
+                  "aria-hidden": "true",
+                  children: [
+                    /* @__PURE__ */ jsx("circle", { className: "opacity-25", cx: "12", cy: "12", r: "10", stroke: "currentColor", strokeWidth: "4" }),
+                    /* @__PURE__ */ jsx("path", { className: "opacity-75", fill: "currentColor", d: "M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" })
+                  ]
+                }
+              )
+            },
+            "loading"
+          ),
+          state === "success" && /* @__PURE__ */ jsx(
+            motion.span,
+            {
+              initial: reduced ? {} : { opacity: 0, scale: 0.5 },
+              animate: { opacity: 1, scale: 1 },
+              exit: reduced ? {} : { opacity: 0, scale: 0.5 },
+              transition: { duration: 0.2 },
+              children: /* @__PURE__ */ jsx("svg", { width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", "aria-hidden": "true", children: /* @__PURE__ */ jsx(
+                motion.path,
+                {
+                  d: "M3 8.5L6.5 12L13 4",
+                  stroke: "currentColor",
+                  strokeWidth: "2",
+                  strokeLinecap: "round",
+                  strokeLinejoin: "round",
+                  initial: reduced ? {} : { pathLength: 0 },
+                  animate: { pathLength: 1 },
+                  transition: { duration: 0.3 }
+                }
+              ) })
+            },
+            "success"
+          ),
+          state === "idle" && /* @__PURE__ */ jsx(
+            motion.span,
+            {
+              initial: reduced ? {} : { opacity: 0 },
+              animate: { opacity: 1 },
+              exit: reduced ? {} : { opacity: 0 },
+              transition: { duration: 0.15 },
+              children
+            },
+            "idle"
+          )
+        ] })
+      }
+    );
+  }
+);
+AnimatedButton.displayName = "AnimatedButton";
+var GlassCard = React16.forwardRef(
+  ({ className, hover = false, accent, children, style, onClick }, ref) => {
+    const reduced = useReducedMotion();
+    const baseStyle = {
+      background: "var(--glass-bg)",
+      border: "1px solid var(--glass-border)",
+      backdropFilter: "blur(16px)",
+      color: "var(--foreground)",
+      transition: "all 0.2s ease",
+      ...style
+    };
+    if (!hover || reduced) {
+      return /* @__PURE__ */ jsxs(
+        "div",
+        {
+          ref,
+          className: cn("rounded-lg", className),
+          style: baseStyle,
+          onClick,
+          children: [
+            accent && /* @__PURE__ */ jsx(
+              "div",
+              {
+                className: "h-[2px] rounded-t-lg",
+                style: { background: accent, opacity: 0.4 }
+              }
+            ),
+            children
+          ]
+        }
+      );
+    }
+    return /* @__PURE__ */ jsxs(
+      motion.div,
+      {
+        ref,
+        className: cn("rounded-lg", className),
+        style: baseStyle,
+        whileHover: {
+          y: -2,
+          boxShadow: accent ? `0 8px 30px ${accent}20, 0 4px 12px rgba(0,0,0,0.3)` : "0 8px 30px rgba(0,0,0,0.3)",
+          borderColor: "rgba(255,255,255,0.1)"
+        },
+        transition: { duration: 0.2 },
+        onClick,
+        children: [
+          accent && /* @__PURE__ */ jsx(
+            motion.div,
+            {
+              className: "h-[2px] rounded-t-lg",
+              style: { background: accent, opacity: 0.4 },
+              whileHover: { opacity: 0.8 }
+            }
+          ),
+          children
+        ]
+      }
+    );
+  }
+);
+GlassCard.displayName = "GlassCard";
+function AnimatedList({
+  children,
+  className,
+  staggerDelay = 0.03
+}) {
+  const reduced = useReducedMotion();
+  if (reduced) {
+    return /* @__PURE__ */ jsx("div", { className, children });
+  }
+  return /* @__PURE__ */ jsx(
+    motion.div,
+    {
+      className,
+      initial: "hidden",
+      animate: "show",
+      variants: {
+        hidden: {},
+        show: { transition: { staggerChildren: staggerDelay } }
+      },
+      children: /* @__PURE__ */ jsx(AnimatePresence, { initial: false, children })
+    }
+  );
+}
+function AnimatedListItem({
+  children,
+  className,
+  layoutId
+}) {
+  const reduced = useReducedMotion();
+  if (reduced) {
+    return /* @__PURE__ */ jsx("div", { className, children });
+  }
+  return /* @__PURE__ */ jsx(
+    motion.div,
+    {
+      className,
+      layout: true,
+      layoutId,
+      variants: {
+        hidden: { opacity: 0, y: 12 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } }
+      },
+      initial: "hidden",
+      animate: "show",
+      exit: { opacity: 0, y: -12, transition: { duration: 0.15 } },
+      children
+    }
+  );
+}
+function AnimatedModal({
+  open,
+  onClose,
+  children,
+  className
+}) {
+  const reduced = useReducedMotion();
+  const contentRef = useRef(null);
+  const previousFocusRef = useRef(null);
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key === "Tab" && contentRef.current) {
+        const focusable = contentRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    },
+    [onClose]
+  );
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement;
+      document.addEventListener("keydown", handleKeyDown);
+      requestAnimationFrame(() => {
+        const first = contentRef.current?.querySelector(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (first) first.focus();
+        else contentRef.current?.focus();
+      });
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      if (!open) previousFocusRef.current?.focus();
+    };
+  }, [open, handleKeyDown]);
+  useEffect(() => {
+    if (open) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = prev;
+      };
+    }
+  }, [open]);
+  return /* @__PURE__ */ jsx(AnimatePresence, { children: open && /* @__PURE__ */ jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center", children: [
+    /* @__PURE__ */ jsx(
+      motion.div,
+      {
+        className: "absolute inset-0",
+        style: { background: "rgba(0, 0, 0, 0.6)", backdropFilter: "blur(4px)" },
+        initial: reduced ? {} : { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: reduced ? {} : { opacity: 0 },
+        transition: { duration: 0.15 },
+        onClick: onClose,
+        "aria-hidden": "true"
+      }
+    ),
+    /* @__PURE__ */ jsx(
+      motion.div,
+      {
+        ref: contentRef,
+        role: "dialog",
+        "aria-modal": "true",
+        tabIndex: -1,
+        className: cn(
+          "relative z-10 rounded-lg p-6 max-w-lg w-full mx-4 outline-none",
+          className
+        ),
+        style: {
+          background: "var(--surface-2)",
+          border: "1px solid var(--glass-border)",
+          color: "var(--foreground)"
+        },
+        initial: reduced ? {} : { opacity: 0, scale: 0.95 },
+        animate: { opacity: 1, scale: 1 },
+        exit: reduced ? {} : { opacity: 0, scale: 0.95 },
+        transition: { duration: 0.15 },
+        children
+      }
+    )
+  ] }) });
+}
+var ToastContext = createContext(null);
+function useToast() {
+  const ctx = useContext(ToastContext);
+  if (!ctx) throw new Error("useToast must be used within <ToastProvider>");
+  return ctx;
+}
+var typeStyles = {
+  success: { bg: "rgba(16, 185, 129, 0.1)", border: "rgba(16, 185, 129, 0.2)", icon: "#10b981" },
+  error: { bg: "rgba(239, 68, 68, 0.1)", border: "rgba(239, 68, 68, 0.2)", icon: "#ef4444" },
+  info: { bg: "rgba(59, 130, 246, 0.1)", border: "rgba(59, 130, 246, 0.2)", icon: "#3b82f6" },
+  warning: { bg: "rgba(245, 158, 11, 0.1)", border: "rgba(245, 158, 11, 0.2)", icon: "#f59e0b" }
+};
+function ToastIcon({ type, reduced }) {
+  const color = typeStyles[type].icon;
+  if (type === "success") {
+    return /* @__PURE__ */ jsxs("svg", { width: "18", height: "18", viewBox: "0 0 18 18", fill: "none", children: [
+      /* @__PURE__ */ jsx("circle", { cx: "9", cy: "9", r: "8", stroke: color, strokeWidth: "1.5", opacity: "0.3" }),
+      /* @__PURE__ */ jsx(
+        motion.path,
+        {
+          d: "M5.5 9.5L7.5 11.5L12.5 6.5",
+          stroke: color,
+          strokeWidth: "2",
+          strokeLinecap: "round",
+          strokeLinejoin: "round",
+          initial: reduced ? {} : { pathLength: 0 },
+          animate: { pathLength: 1 },
+          transition: { duration: 0.4, delay: 0.1 }
+        }
+      )
+    ] });
+  }
+  if (type === "error") {
+    return /* @__PURE__ */ jsxs(
+      motion.svg,
+      {
+        width: "18",
+        height: "18",
+        viewBox: "0 0 18 18",
+        fill: "none",
+        animate: reduced ? {} : { x: [0, -2, 2, -1, 1, 0] },
+        transition: { duration: 0.4 },
+        children: [
+          /* @__PURE__ */ jsx("circle", { cx: "9", cy: "9", r: "8", stroke: color, strokeWidth: "1.5", opacity: "0.3" }),
+          /* @__PURE__ */ jsx("path", { d: "M6.5 6.5L11.5 11.5M11.5 6.5L6.5 11.5", stroke: color, strokeWidth: "2", strokeLinecap: "round" })
+        ]
+      }
+    );
+  }
+  if (type === "warning") {
+    return /* @__PURE__ */ jsxs("svg", { width: "18", height: "18", viewBox: "0 0 18 18", fill: "none", children: [
+      /* @__PURE__ */ jsx("path", { d: "M9 2L16.5 15.5H1.5L9 2Z", stroke: color, strokeWidth: "1.5", opacity: "0.3" }),
+      /* @__PURE__ */ jsx("path", { d: "M9 7V10", stroke: color, strokeWidth: "2", strokeLinecap: "round" }),
+      /* @__PURE__ */ jsx("circle", { cx: "9", cy: "12.5", r: "1", fill: color })
+    ] });
+  }
+  return /* @__PURE__ */ jsxs("svg", { width: "18", height: "18", viewBox: "0 0 18 18", fill: "none", children: [
+    /* @__PURE__ */ jsx("circle", { cx: "9", cy: "9", r: "8", stroke: color, strokeWidth: "1.5", opacity: "0.3" }),
+    /* @__PURE__ */ jsx("path", { d: "M9 8V12.5", stroke: color, strokeWidth: "2", strokeLinecap: "round" }),
+    /* @__PURE__ */ jsx("circle", { cx: "9", cy: "5.5", r: "1", fill: color })
+  ] });
+}
+function ToastProgressBar({ duration, color }) {
+  return /* @__PURE__ */ jsx("div", { className: "absolute bottom-0 left-0 right-0 h-[2px] overflow-hidden rounded-b-lg", children: /* @__PURE__ */ jsx(
+    motion.div,
+    {
+      className: "h-full",
+      style: { background: color },
+      initial: { width: "100%" },
+      animate: { width: "0%" },
+      transition: { duration: duration / 1e3, ease: "linear" }
+    }
+  ) });
+}
+function ToastProvider({ children }) {
+  const reduced = useReducedMotion();
+  const [toasts, setToasts] = useState([]);
+  const idRef = useRef(0);
+  const timersRef = useRef(/* @__PURE__ */ new Map());
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+    const timer = timersRef.current.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      timersRef.current.delete(id);
+    }
+  }, []);
+  const addToast = useCallback(
+    (opts) => {
+      const id = `toast-${++idRef.current}`;
+      const duration = opts.duration ?? 4e3;
+      const item = { ...opts, id, duration };
+      setToasts((prev) => {
+        const next = [...prev, item];
+        return next.slice(-3);
+      });
+      const timer = setTimeout(() => removeToast(id), duration);
+      timersRef.current.set(id, timer);
+    },
+    [removeToast]
+  );
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach((t) => clearTimeout(t));
+    };
+  }, []);
+  const ctx = {
+    toast: addToast,
+    success: (title, description) => addToast({ type: "success", title, description }),
+    error: (title, description) => addToast({ type: "error", title, description }),
+    info: (title, description) => addToast({ type: "info", title, description }),
+    warning: (title, description) => addToast({ type: "warning", title, description })
+  };
+  return /* @__PURE__ */ jsxs(ToastContext.Provider, { value: ctx, children: [
+    children,
+    /* @__PURE__ */ jsx("div", { className: "fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none", style: { maxWidth: 380 }, children: /* @__PURE__ */ jsx(AnimatePresence, { initial: false, children: toasts.map((t) => {
+      const styles = typeStyles[t.type];
+      return /* @__PURE__ */ jsxs(
+        motion.div,
+        {
+          layout: true,
+          initial: reduced ? {} : { opacity: 0, x: 80, scale: 0.95 },
+          animate: { opacity: 1, x: 0, scale: 1 },
+          exit: reduced ? {} : { opacity: 0, x: 80, scale: 0.95 },
+          transition: { duration: 0.2, ease: "easeOut" },
+          className: "relative rounded-lg px-4 py-3 pointer-events-auto cursor-pointer overflow-hidden",
+          style: {
+            background: styles.bg,
+            border: `1px solid ${styles.border}`,
+            backdropFilter: "blur(16px)",
+            color: "var(--foreground)"
+          },
+          onClick: () => removeToast(t.id),
+          children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-start gap-3", children: [
+              /* @__PURE__ */ jsx("div", { className: "flex-shrink-0 mt-0.5", children: /* @__PURE__ */ jsx(ToastIcon, { type: t.type, reduced }) }),
+              /* @__PURE__ */ jsxs("div", { className: "flex-1 min-w-0", children: [
+                /* @__PURE__ */ jsx("p", { className: "text-sm font-medium", children: t.title }),
+                t.description && /* @__PURE__ */ jsx("p", { className: "text-xs mt-0.5", style: { color: "var(--muted-foreground)" }, children: t.description })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsx(ToastProgressBar, { duration: t.duration ?? 4e3, color: styles.icon })
+          ]
+        },
+        t.id
+      );
+    }) }) })
+  ] });
+}
+function useHoverGlow(accentColor) {
+  const reduced = useReducedMotion();
+  const [hovered, setHovered] = useState(false);
+  const style = useMemo(() => {
+    if (reduced || !hovered) return {};
+    return {
+      boxShadow: `0 0 20px ${accentColor}30, 0 0 40px ${accentColor}15`,
+      borderColor: `${accentColor}40`,
+      transition: "box-shadow 0.2s ease, border-color 0.2s ease"
+    };
+  }, [reduced, hovered, accentColor]);
+  return {
+    style,
+    onMouseEnter: () => setHovered(true),
+    onMouseLeave: () => setHovered(false)
+  };
+}
+function usePressScale(scale = 0.97) {
+  const reduced = useReducedMotion();
+  if (reduced) return {};
+  return { whileTap: { scale } };
+}
+function useRevealOnScroll(options = {}) {
+  const ref = useRef(null);
+  const reduced = useReducedMotion();
+  const [revealed, setRevealed] = useState(reduced);
+  useEffect(() => {
+    if (reduced) {
+      setRevealed(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setRevealed(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: options.threshold ?? 0.1, rootMargin: options.rootMargin }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [reduced, options.threshold, options.rootMargin]);
+  const style = useMemo(() => {
+    if (reduced) return {};
+    return {
+      opacity: revealed ? 1 : 0,
+      transform: revealed ? "translateY(0)" : "translateY(20px)",
+      transition: "opacity 0.4s ease-out, transform 0.4s ease-out"
+    };
+  }, [reduced, revealed]);
+  return { ref, style, revealed };
+}
+
+export { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, AlertDialogPortal, AlertDialogTitle, AlertDialogTrigger, AnimatedButton, AnimatedEmptyState, AnimatedList, AnimatedListItem, AnimatedModal, AnimatedNumber, AnimatedPage, AppShell, Avatar, AvatarFallback, AvatarImage, Badge, BirdSymbol, Breadcrumb, BreadcrumbEllipsis, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator, Button, Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle, Checkbox, Collapsible, CollapsibleContent2 as CollapsibleContent, CollapsibleTrigger2 as CollapsibleTrigger, Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator, CommandShortcut, DatePicker, DetailPage, Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuPortal, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger, EmptyState, FaviconHead, Form, FormField, GlassCard, Input, Label2 as Label, ListPage, LoginPage, MOTION, MobileNav, NavGroup, NavItem, PageHeader, Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, Popover, PopoverAnchor, PopoverContent, PopoverTrigger, ProductLogo, Progress, RadioGroup, RadioGroupItem, ScrollArea, ScrollBar, Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectScrollDownButton, SelectScrollUpButton, SelectSeparator, SelectTrigger, SelectValue, Separator3 as Separator, SettingsPage, Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetOverlay, SheetPortal, SheetTitle, SheetTrigger, Sidebar, Skeleton, SkeletonAvatar, SkeletonCard, SkeletonTable, SkeletonText, Spinner, StatCard, Switch, Table, TableBody, TableCaption, TableCell, TableFooter, TableHead, TableHeader, TableRow, Tabs, TabsContent, TabsList, TabsTrigger, TenantSwitcher, Textarea, TheOneBadge, ToastProvider, Toaster, Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, TopBar, UserMenu, badgeVariants, buttonVariants, cn, setAccent, staggerContainer, staggerItem, uiPreset, useFormField, useHoverGlow, usePressScale, useReducedMotion, useRevealOnScroll, useToast };
