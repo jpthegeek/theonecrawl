@@ -1,0 +1,1 @@
+{"version":3,"file":"azure-openai.d.ts","sourceRoot":"","sources":["../../src/providers/azure-openai.ts"],"names":[],"mappings":"AAEA,OAAO,KAAK,EACV,UAAU,EACV,yBAAyB,EAQ1B,MAAM,aAAa,CAAC;AAErB,wBAAgB,yBAAyB,CAAC,MAAM,EAAE,yBAAyB,GAAG,UAAU,CA+JvF"}

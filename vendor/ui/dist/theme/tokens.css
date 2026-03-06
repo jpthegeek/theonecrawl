@@ -1,0 +1,181 @@
+:root {
+  /* Surfaces — the signature deep dark */
+  --background: #09090b;
+  --surface-0: #09090b;
+  --surface-1: #111113;
+  --surface-2: #181818;
+  --surface-3: #1c1c1c;
+  --surface-4: #212121;
+  --card: #111113;
+  --popover: #181818;
+
+  /* Text */
+  --foreground: #e8eaec;
+  --muted-foreground: #8c8c8c;
+
+  /* Borders */
+  --border: #404040;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.1);
+
+  /* Glass */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-bg-strong: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.06);
+  --glass-border-hover: rgba(255, 255, 255, 0.1);
+  --glass-blur: 16px;
+  --glass-blur-strong: 24px;
+
+  /* Semantic */
+  --destructive: #ef4444;
+  --destructive-foreground: #fef2f2;
+  --success: #10b981;
+  --success-foreground: #ecfdf5;
+  --warning: #f59e0b;
+  --warning-foreground: #fffbeb;
+  --info: #3b82f6;
+  --info-foreground: #eff6ff;
+
+  /* Radius */
+  --radius: 0.625rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.625rem;
+  --radius-xl: 0.875rem;
+
+  /* Transitions */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* Accent — default blue, overridden per product via setAccent() */
+  --accent: #3b82f6;
+  --accent-rgb: 59, 130, 246;
+  --accent-foreground: #eff6ff;
+  --accent-muted: rgba(59, 130, 246, 0.1);
+  --accent-border: rgba(59, 130, 246, 0.2);
+
+  /* Primary — mirrors accent */
+  --primary: #3b82f6;
+  --primary-foreground: #eff6ff;
+
+  /* Ring — mirrors accent */
+  --ring: #3b82f6;
+
+  /* Glow — derived from accent */
+  --glow-sm: 0 0 10px rgba(59, 130, 246, 0.15);
+  --glow-md: 0 0 20px rgba(59, 130, 246, 0.2);
+  --glow-lg: 0 0 40px rgba(59, 130, 246, 0.25);
+
+  /* Brand constant — always orange, never changes */
+  --brand-orange: #f97316;
+
+  /* Scrollbar */
+  --scrollbar-width: 6px;
+  --scrollbar-thumb: #404040;
+  --scrollbar-thumb-hover: #555555;
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Glass utility */
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.glass:hover {
+  border-color: var(--glass-border-hover);
+}
+
+.glass-strong {
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur-strong));
+}
+
+.glass-strong:hover {
+  border-color: var(--glass-border-hover);
+}
+
+/* Glow utilities */
+.glow-sm {
+  box-shadow: var(--glow-sm);
+}
+
+.glow-md {
+  box-shadow: var(--glow-md);
+}
+
+.glow-lg {
+  box-shadow: var(--glow-lg);
+}
+
+/* Focus ring */
+.focus-ring {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  33% { transform: translateY(-15px) translateX(10px); }
+  66% { transform: translateY(10px) translateX(-8px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-slow {
+  animation: float-slow 10s ease-in-out infinite;
+}
