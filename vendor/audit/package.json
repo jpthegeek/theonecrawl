@@ -10,7 +10,7 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "@theonefamily/bus-sdk": "*"
+    "@theonefamily/bus-sdk": "file:../bus-sdk"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
