@@ -117,7 +117,7 @@ app.post('/', authMiddleware, async (c) => {
 // GET /v1/crawl/:id — Poll crawl status
 app.get('/:id', authMiddleware, async (c) => {
   const auth = getAuth(c);
-  const jobId = c.req.param('id');
+  const jobId = c.req.param('id')!;
   const job = getJob(jobId);
 
   if (!job) {
@@ -171,7 +171,7 @@ app.get('/:id', authMiddleware, async (c) => {
 // DELETE /v1/crawl/:id — Cancel crawl
 app.delete('/:id', authMiddleware, async (c) => {
   const auth = getAuth(c);
-  const jobId = c.req.param('id');
+  const jobId = c.req.param('id')!;
   const job = getJob(jobId);
 
   if (!job || job.accountId !== auth.accountId) {
@@ -185,7 +185,7 @@ app.delete('/:id', authMiddleware, async (c) => {
 // GET /v1/crawl/:id/cms-blocks — TheOneCrawl exclusive: CMS blocks per page
 app.get('/:id/cms-blocks', authMiddleware, async (c) => {
   const auth = getAuth(c);
-  const jobId = c.req.param('id');
+  const jobId = c.req.param('id')!;
   const pageIndex = Math.max(0, parseInt(c.req.query('page') || '0', 10) || 0);
   const job = getJob(jobId);
 
@@ -223,7 +223,7 @@ app.get('/:id/cms-blocks', authMiddleware, async (c) => {
 // GET /v1/crawl/:id/design-system — TheOneCrawl exclusive
 app.get('/:id/design-system', authMiddleware, async (c) => {
   const auth = getAuth(c);
-  const jobId = c.req.param('id');
+  const jobId = c.req.param('id')!;
   const job = getJob(jobId);
 
   if (!job || job.accountId !== auth.accountId) {

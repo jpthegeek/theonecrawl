@@ -115,7 +115,7 @@ app.post('/', authMiddleware, async (c) => {
 // GET /v1/batch/scrape/:id — Poll batch status
 app.get('/:id', authMiddleware, async (c) => {
   const auth = getAuth(c);
-  const batchId = c.req.param('id');
+  const batchId = c.req.param('id')!;
   const batch = getBatch(batchId);
 
   if (!batch) {

@@ -38,7 +38,7 @@ jobs:
             --image ${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --image ${{ env.IMAGE_NAME }}:latest \
             --file api/Dockerfile \
-            api/
+            .
 
       - name: Deploy to Container App
         run: |

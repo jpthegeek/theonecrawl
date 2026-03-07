@@ -12,15 +12,18 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends python3 make g++ && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy vendor packages first (file: references in package.json resolve to /vendor/)
+COPY vendor/ /vendor/
+
 # Copy package files for dependency installation
-COPY package.json ./
-COPY tsconfig.json ./
+COPY api/package.json ./
+COPY api/tsconfig.json ./
 
 # Install all dependencies (including devDependencies for build)
 RUN npm install
 
 # Copy source code
-COPY src/ ./src/
+COPY api/src/ ./src/
 
 # Build TypeScript
 RUN npx tsc
