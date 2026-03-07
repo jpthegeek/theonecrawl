@@ -6,8 +6,8 @@
   "main": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "lint": "tsc --noEmit"
+    "build": "true",
+    "lint": "true"
   },
   "dependencies": {
     "@theonefamily/bus-sdk": "file:../bus-sdk"

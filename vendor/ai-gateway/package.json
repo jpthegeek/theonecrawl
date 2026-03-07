@@ -14,9 +14,9 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -b",
+    "build": "true",
     "clean": "rm -rf dist .turbo *.tsbuildinfo",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

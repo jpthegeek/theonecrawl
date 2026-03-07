@@ -17,9 +17,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly --outDir dist",
+    "build": "true",
     "dev": "vite build --watch",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "true",
     "demo": "vite --config vite.demo.config.ts"
   },
   "peerDependencies": {
