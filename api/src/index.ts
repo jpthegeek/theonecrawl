@@ -21,6 +21,8 @@ import { extractRoutes } from './routes/extract.js';
 import { batchScrapeRoutes } from './routes/batch-scrape.js';
 import { metricsRoutes } from './routes/metrics.js';
 import { adminRoutes } from './routes/admin.js';
+import { portalSsoRoutes } from './routes/portal-sso.js';
+import { permissionsRoutes } from './routes/permissions-register.js';
 import { getQueueStats, stopWorker, setJobStore, loadPendingJobs, recoverInterruptedJobs, waitForDrain } from './engine/queue.js';
 import { isCosmosConfigured, cosmosQuery } from './shared/cosmos.js';
 import { authMiddleware } from './auth/middleware.js';
@@ -292,6 +294,7 @@ app.use('/v1/extract/*', dashboardRateLimit);
 app.use('/v1/batch/*', dashboardRateLimit);
 
 app.route('/v1/auth', authRoutes);
+app.route('/v1/auth', portalSsoRoutes);
 app.route('/v1/account', accountRoutes);
 app.route('/v1/api-keys', apiKeysRoutes);
 app.route('/v1/usage', usageRoutes);
@@ -310,6 +313,7 @@ app.route('/v1/batch/scrape', batchScrapeRoutes);
 
 app.route('/api/metrics', metricsRoutes);
 app.route('/v1/admin', adminRoutes);
+app.route('/permissions', permissionsRoutes);
 
 // ---------------------------------------------------------------------------
 // 404 handler
