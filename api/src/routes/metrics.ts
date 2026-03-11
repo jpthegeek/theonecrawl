@@ -2,6 +2,7 @@
 // TheOneCrawl — Ops Center metrics endpoint
 // ---------------------------------------------------------------------------
 
+import { timingSafeEqual } from 'node:crypto';
 import { Hono } from 'hono';
 import { getQueueStats } from '../engine/queue.js';
 import { isCosmosConfigured, cosmosQuery } from '../shared/cosmos.js';
@@ -103,7 +104,12 @@ metricsRoutes.get('/', async (c) => {
 
   const authHeader = c.req.header('Authorization');
   const provided = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
-  if (provided !== token) {
+  if (!provided) {
+    return c.json({ error: 'Unauthorized' }, 401);
+  }
+  const providedBuf = Buffer.from(provided);
+  const tokenBuf = Buffer.from(token);
+  if (providedBuf.length !== tokenBuf.length || !timingSafeEqual(providedBuf, tokenBuf)) {
     return c.json({ error: 'Unauthorized' }, 401);
   }
 
