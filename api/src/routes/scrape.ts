@@ -16,6 +16,8 @@ import { getGateway, CLAUDE_MODEL } from '../shared/anthropic.js';
 import { logger } from '../shared/logger.js';
 import { trackCreditConsumption } from '../auth/abuse-detection.js';
 import type { ScrapeResponse, ScrapeFormat } from '../engine/types.js';
+import { detectPageType } from '../engine/extractor.js';
+import { computeReadability, computeSeo } from '../engine/readability.js';
 
 const headerValueSchema = z.string().max(4096).refine(
   (v) => !/[\r\n]/.test(v),
@@ -132,6 +134,7 @@ app.post('/', authMiddleware, async (c) => {
         favicon: result.siteMetadata.favicon || undefined,
         statusCode: page.statusCode,
         sourceURL: page.url,
+        pageType: detectPageType(page.html, url, page.extractedContent),
       },
     };
 
@@ -157,6 +160,12 @@ app.post('/', authMiddleware, async (c) => {
     if (page.actionResults && page.actionResults.length > 0) {
       data.actions = page.actionResults;
     }
+
+    // Readability + SEO metrics (pure computation — no AI, no credits)
+    if (data.markdown) {
+      data.metadata.readability = computeReadability(data.markdown);
+    }
+    data.metadata.seo = computeSeo(page.html, page.extractedContent, result.siteMetadata);
 
     // Inline extraction: if formats includes 'extract' and extract config provided
     if (formats.includes('extract') && parsed.data.extract) {

@@ -1,12 +1,16 @@
 export { HubBar } from './HubBar';
 export { SupportButton } from './SupportPanel';
+export { JarvisButton } from './JarvisPanel';
 export { ProductSwitcher } from './ProductSwitcher';
 export { UnifiedSearch } from './UnifiedSearch';
 export { NotificationBell } from './NotificationBell';
+export { NotificationToast } from './NotificationToast';
 export { UserMenu } from './UserMenu';
 export { useHubSession } from './hooks/useHubSession';
 export { useProducts } from './hooks/useProducts';
 export { useNotifications } from './hooks/useNotifications';
 export { useSearch } from './hooks/useSearch';
-export type { HubBarProps, HubSession, Product, ProductId, Notification, SearchResult, SearchResultGroup, SupportConfig, } from './types';
+export { useJarvis } from './hooks/useJarvis';
+export type { HubBarProps, HubSession, Product, ProductId, Notification, SearchResult, SearchResultGroup, SupportConfig, JarvisContextOverride, } from './types';
+export type { JarvisMessage, JarvisContext, QuickAction, } from './hooks/useJarvis';
 export { ALL_PRODUCTS, HUB_BAR_HEIGHT, HUB_URL, SEVERITY_COLORS } from './constants';

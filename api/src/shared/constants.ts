@@ -43,7 +43,30 @@ export const CREDIT_COSTS = {
   cms_blocks: 1, // extra cost for CMS block conversion
   ai_extract: 5,
   screenshot: 0, // included free
+  monitor_check: 1, // per scheduled check (same as scrape)
+  monitor_ai_analysis: 3, // additional cost for significant_change AI analysis
+  enrich_company: 1, // base crawl cost
+  enrich_company_ai: 5, // additional AI normalization cost
+  sitemap_intelligence: 2, // costs more than basic map (fetches metadata)
+  search: 1,
+  search_scrape_page: 1,
 } as const;
+
+// Monitor frequency intervals in milliseconds
+export const MONITOR_FREQUENCY_MS = {
+  hourly: 60 * 60 * 1000,
+  daily: 24 * 60 * 60 * 1000,
+  weekly: 7 * 24 * 60 * 60 * 1000,
+} as const;
+
+// Max monitors per plan
+export const PLAN_MONITOR_LIMITS: Record<string, number> = {
+  free: 3,
+  hobby: 10,
+  standard: 50,
+  growth: 200,
+  enterprise: 2000,
+};
 
 // Stripe price IDs (set in Stripe dashboard)
 export const STRIPE_PRICE_IDS: Record<string, string> = {

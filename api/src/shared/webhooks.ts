@@ -17,7 +17,10 @@ export type WebhookEvent =
   | 'batch.started'
   | 'batch.url_completed'
   | 'batch.completed'
-  | 'batch.failed';
+  | 'batch.failed'
+  | 'monitor.changed'
+  | 'monitor.keyword_alert'
+  | 'monitor.error';
 
 interface WebhookPayload {
   event: WebhookEvent;

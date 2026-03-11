@@ -15,6 +15,7 @@ export declare const LogOut: ({ size, className, color }: IconProps) => import("
 export declare const SwitchHorizontal: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const ExternalLink: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const MessageCircle: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const HelpCircle: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const LifeBuoy: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const Briefcase: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const Target: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
@@ -37,5 +38,6 @@ export declare const Scale: ({ size, className, color }: IconProps) => import("r
 export declare const Globe: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const LayoutGrid: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const Activity: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const FolderSync: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const PRODUCT_ICONS: Record<string, (props: IconProps) => React.JSX.Element>;
 export {};

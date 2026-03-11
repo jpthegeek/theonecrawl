@@ -7,7 +7,7 @@ export declare const HUB_BAR_HEIGHT = 48;
 
 export declare const HUB_URL = "https://my.theonestack.com";
 
-export declare function HubBar({ currentProduct, apiBase, signalrEndpoint, session: sessionOverride, onLogout, hubUrl, chatSlot, supportConfig, }: HubBarProps): JSX.Element | null;
+export declare function HubBar({ currentProduct, apiBase, signalrEndpoint, session: sessionOverride, onLogout, hubUrl, chatSlot, supportConfig, orgBranding, }: HubBarProps): JSX.Element | null;
 
 export declare interface HubBarProps {
     currentProduct: ProductId;
@@ -19,6 +19,7 @@ export declare interface HubBarProps {
     /** @deprecated Use supportConfig instead */
     chatSlot?: React.ReactNode;
     supportConfig?: SupportConfig;
+    orgBranding?: OrgBranding;
 }
 
 export declare interface HubSession {
@@ -28,11 +29,44 @@ export declare interface HubSession {
     tenantName: string;
     email: string;
     role: string;
-    orgRole?: 'owner' | 'admin' | 'member' | 'viewer';
+    orgRole?: 'owner' | 'admin' | 'finance' | 'member' | 'viewer';
     entitlements?: string[];
     firstName?: string;
     lastName?: string;
     initials: string;
+}
+
+export declare function JarvisButton({ apiBase, tenantId, userId, }: JarvisPanelProps): JSX.Element;
+
+export declare interface JarvisContext {
+    product: ProductId | null;
+    page: string;
+    entity_type?: string;
+    entity_id?: string;
+}
+
+export declare interface JarvisContextOverride {
+    product?: ProductId;
+    entity_type?: string;
+    entity_id?: string;
+    additional_context?: string;
+}
+
+export declare interface JarvisMessage {
+    id: string;
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+    tool_calls?: ToolCallResult[];
+    context_used?: string[];
+    timestamp: string;
+    error?: boolean;
+}
+
+declare interface JarvisPanelProps {
+    apiBase: string;
+    tenantId: string | null;
+    userId: string | null;
+    currentProduct: ProductId;
 }
 
 declare interface Notification_2 {
@@ -43,12 +77,14 @@ declare interface Notification_2 {
     body?: string;
     severity: 'info' | 'warning' | 'error' | 'success';
     read: boolean;
+    dismissed?: boolean;
     deepLink: string;
     createdAt: string;
+    groupCount?: number;
 }
 export { Notification_2 as Notification }
 
-export declare function NotificationBell({ notifications, unreadCount, open, onToggle, onClose, onMarkAllRead, onMarkRead, hubUrl, }: NotificationBellProps): JSX.Element;
+export declare function NotificationBell({ notifications, unreadCount, open, onToggle, onClose, onMarkAllRead, onMarkRead, onDismiss, muted, onMute, onUnmute, hubUrl, }: NotificationBellProps): JSX.Element;
 
 declare interface NotificationBellProps {
     notifications: Notification_2[];
@@ -58,7 +94,31 @@ declare interface NotificationBellProps {
     onClose: () => void;
     onMarkAllRead: () => void;
     onMarkRead: (id: string) => void;
+    onDismiss: (id: string) => void;
+    muted: boolean;
+    onMute: (ms: number) => void;
+    onUnmute: () => void;
     hubUrl: string;
+}
+
+export declare function NotificationToast({ toasts, onDismiss }: NotificationToastProps): JSX.Element | null;
+
+declare interface NotificationToastProps {
+    toasts: Notification_2[];
+    onDismiss: (id: string) => void;
+}
+
+declare interface OrgBranding {
+    company_name?: string;
+    logo_url?: string;
+    logo_icon_url?: string;
+    primary_color?: string;
+    accent_color?: string;
+    colors?: {
+        header_bg?: string;
+        header_text?: string;
+    };
+    hide_powered_by?: boolean;
 }
 
 export declare interface Product {
@@ -70,7 +130,7 @@ export declare interface Product {
     color: string;
 }
 
-export declare type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission';
+export declare type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission' | 'migrate' | 'brand' | 'relay' | 'code';
 
 export declare function ProductSwitcher({ currentProduct, products, open, onToggle, onClose, hubUrl, }: ProductSwitcherProps): JSX.Element;
 
@@ -81,6 +141,11 @@ declare interface ProductSwitcherProps {
     onToggle: () => void;
     onClose: () => void;
     hubUrl: string;
+}
+
+export declare interface QuickAction {
+    label: string;
+    prompt: string;
 }
 
 export declare interface SearchResult {
@@ -123,6 +188,12 @@ declare interface SupportPanelProps {
     };
 }
 
+declare interface ToolCallResult {
+    name: string;
+    status: 'running' | 'done' | 'error';
+    summary?: string;
+}
+
 export declare function UnifiedSearch({ apiBase, tenantId }: UnifiedSearchProps): JSX.Element;
 
 declare interface UnifiedSearchProps {
@@ -132,13 +203,29 @@ declare interface UnifiedSearchProps {
 
 export declare function useHubSession(override?: HubSession): HubSession | null;
 
-export declare function useNotifications(apiBase: string, signalrEndpoint: string | undefined, tenantId: string | null): UseNotificationsResult;
+export declare function useJarvis(apiBase: string, tenantId: string | null, _userId: string | null): {
+    messages: JarvisMessage[];
+    streaming: boolean;
+    context: JarvisContext;
+    quickActions: QuickAction[];
+    sendMessage: (content: string) => Promise<void>;
+    stopStreaming: () => void;
+    clearMessages: () => void;
+};
+
+export declare function useNotifications(apiBase: string, signalrEndpoint: string | undefined, tenantId: string | null, userId: string | null): UseNotificationsResult;
 
 declare interface UseNotificationsResult {
     notifications: Notification_2[];
     unreadCount: number;
     markAllRead: () => void;
     markRead: (id: string) => void;
+    dismiss: (id: string) => void;
+    muted: boolean;
+    muteUntil: (ms: number) => void;
+    unmute: () => void;
+    toastQueue: Notification_2[];
+    dismissToast: (id: string) => void;
 }
 
 export declare function useProducts(apiBase: string, tenantId: string | null): UseProductsResult;

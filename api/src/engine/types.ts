@@ -5,6 +5,24 @@
 import type { CmsBlock, WebsiteTheme } from './cms-types.js';
 import type { BrowserAction, ActionResult } from './actions.js';
 
+// ---------------------------------------------------------------------------
+// Page type detection
+// ---------------------------------------------------------------------------
+
+export type PageType =
+  | 'homepage'
+  | 'product_page'
+  | 'pricing_page'
+  | 'blog_post'
+  | 'documentation'
+  | 'job_posting'
+  | 'press_release'
+  | 'contact_page'
+  | 'about_page'
+  | 'landing_page'
+  | 'news_article'
+  | 'unknown';
+
 // Re-export CMS types for consumers
 export type { CmsBlock, WebsiteTheme };
 export type { BrowserAction, ActionResult };
@@ -439,4 +457,87 @@ export interface CrawlBlocksResponse {
   themeSuggestion?: Partial<WebsiteTheme>;
   headerBlock?: CmsBlock;
   footerBlock?: CmsBlock;
+}
+
+// ---------------------------------------------------------------------------
+// Web Monitors — change detection & scheduled crawls
+// ---------------------------------------------------------------------------
+
+export type MonitorFrequency = 'hourly' | 'daily' | 'weekly';
+export type MonitorChangeType = 'any_change' | 'significant_change' | 'keyword_alert';
+export type MonitorStatus = 'active' | 'paused' | 'error';
+
+export interface Monitor {
+  id: string;
+  accountId: string;
+  url: string;
+  name?: string;
+  frequency: MonitorFrequency;
+  changeType: MonitorChangeType;
+  /** Keywords to watch for (required when changeType = 'keyword_alert') */
+  keywords?: string[];
+  webhookUrl?: string;
+  webhookSecret?: string;
+  status: MonitorStatus;
+  /** ISO timestamp of the next scheduled check */
+  nextCheckAt: string;
+  lastCheckedAt?: string;
+  lastChangedAt?: string;
+  /** SHA-256 hash of the last markdown content */
+  lastContentHash?: string;
+  /** Last known markdown content (capped at 50 KB) */
+  lastMarkdown?: string;
+  /** Number of consecutive errors before pausing */
+  errorCount: number;
+  /** Last error message */
+  lastError?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MonitorCheck {
+  id: string;
+  monitorId: string;
+  accountId: string;
+  type: 'monitor_check';
+  checkedAt: string;
+  contentHash: string;
+  changed: boolean;
+  /** What kind of change was detected */
+  changeDetected?: 'content_change' | 'keyword_appeared' | 'keyword_disappeared' | 'significant_change';
+  /** Keywords that appeared (keyword_alert monitors) */
+  keywordsMatched?: string[];
+  /** Brief diff summary (line count delta) */
+  diffSummary?: string;
+  creditsUsed: number;
+}
+
+// ---------------------------------------------------------------------------
+// Company Intelligence — structured data from company domain enrichment
+// ---------------------------------------------------------------------------
+
+export interface CompanyIntelligence {
+  domain: string;
+  name?: string;
+  description?: string;
+  industry?: string;
+  /** Estimated employee count range, e.g. "50-200" */
+  employeeCount?: string;
+  founded?: string;
+  headquarters?: string;
+  /** Detected technology stack */
+  techStack: string[];
+  socialLinks: ExtractedSocialLink[];
+  contacts: ExtractedContact[];
+  /** Key people extracted from about/team pages */
+  keyPeople?: Array<{ name: string; title?: string; linkedIn?: string }>;
+  /** Main products or services */
+  products?: string[];
+  pricingPlans?: ExtractedPricingPlan[];
+  logoUrl?: string;
+  faviconUrl?: string;
+  ogImage?: string;
+  language?: string;
+  /** AI-generated enrichment notes (when includeAiEnrichment: true) */
+  aiSummary?: string;
 }

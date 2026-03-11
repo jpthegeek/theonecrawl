@@ -23,7 +23,15 @@ import { metricsRoutes } from './routes/metrics.js';
 import { adminRoutes } from './routes/admin.js';
 import { portalSsoRoutes } from './routes/portal-sso.js';
 import { permissionsRoutes } from './routes/permissions-register.js';
+import { monitorRoutes } from './routes/monitors.js';
+import { enrichRoutes } from './routes/enrich.js';
+import { templateRoutes } from './routes/templates.js';
+import { sitemapIntelligenceRoutes } from './routes/sitemap-intelligence.js';
+import { searchRoutes } from './routes/search.js';
+import { internalRoutes } from './routes/internal.js';
+import { intelligenceRoutes } from './routes/intelligence.js';
 import { getQueueStats, stopWorker, setJobStore, loadPendingJobs, recoverInterruptedJobs, waitForDrain } from './engine/queue.js';
+import { startMonitorScheduler, stopMonitorScheduler } from './engine/monitor-scheduler.js';
 import { isCosmosConfigured, cosmosQuery } from './shared/cosmos.js';
 import { authMiddleware } from './auth/middleware.js';
 import { JobStore } from './shared/job-store.js';
@@ -187,6 +195,23 @@ app.route('/v1/map', mapRoutes);
 app.route('/v1/extract', extractRoutes);
 
 // ---------------------------------------------------------------------------
+// Intelligence routes (monitors + enrichment + CVE)
+// ---------------------------------------------------------------------------
+
+app.route('/v1/monitors', monitorRoutes);
+app.route('/v1/enrich', enrichRoutes);
+app.route('/v1/intelligence', intelligenceRoutes);
+app.route('/v1/templates', templateRoutes);
+app.route('/v1/sitemap', sitemapIntelligenceRoutes);
+app.route('/v1/search', searchRoutes);
+
+// ---------------------------------------------------------------------------
+// Internal service API (inter-product, no credits)
+// ---------------------------------------------------------------------------
+
+app.route('/v1/internal', internalRoutes);
+
+// ---------------------------------------------------------------------------
 // Dashboard/auth routes (rate-limited per IP for session-based endpoints)
 // ---------------------------------------------------------------------------
 
@@ -197,7 +222,7 @@ app.route('/v1/extract', extractRoutes);
 const CSRF_PROTECTED_PREFIXES = [
   '/v1/account/', '/v1/api-keys/', '/v1/billing/',
   '/v1/usage/', '/v1/jobs/', '/v1/auth/',
-  '/v1/extract/', '/v1/batch/',
+  '/v1/extract/', '/v1/batch/', '/v1/monitors/', '/v1/enrich/',
 ];
 
 const csrfProtection = async (c: any, next: any) => {
@@ -289,9 +314,17 @@ app.use('/v1/billing/*', dashboardRateLimit);
 app.use('/v1/extract', csrfProtection);
 app.use('/v1/extract/*', csrfProtection);
 app.use('/v1/batch/*', csrfProtection);
+app.use('/v1/monitors/*', csrfProtection);
+app.use('/v1/enrich/*', csrfProtection);
 app.use('/v1/extract', dashboardRateLimit);
 app.use('/v1/extract/*', dashboardRateLimit);
 app.use('/v1/batch/*', dashboardRateLimit);
+app.use('/v1/monitors/*', dashboardRateLimit);
+app.use('/v1/enrich/*', dashboardRateLimit);
+app.use('/v1/intelligence/*', dashboardRateLimit);
+app.use('/v1/templates/*', dashboardRateLimit);
+app.use('/v1/sitemap/*', dashboardRateLimit);
+app.use('/v1/search/*', dashboardRateLimit);
 
 app.route('/v1/auth', authRoutes);
 app.route('/v1/auth', portalSsoRoutes);
@@ -356,6 +389,8 @@ if (isCosmosConfigured()) {
   logger.info('Cosmos DB persistence initialized');
   await recoverInterruptedJobs();
   await loadPendingJobs();
+  // Start monitor scheduler after Cosmos is available
+  startMonitorScheduler();
 } else {
   logger.info('Using in-memory storage (COSMOS_ENDPOINT not set)');
 }
@@ -384,6 +419,7 @@ const shutdown = async () => {
   if (shuttingDown) return;
   shuttingDown = true;
   logger.info('Shutting down — closing server and draining active jobs (30s max)');
+  stopMonitorScheduler();
   server.close();
   await waitForDrain(30_000);
   await closeRedis();

@@ -1,4 +1,4 @@
-export type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission';
+export type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission' | 'migrate' | 'brand' | 'relay' | 'code';
 export interface Product {
     id: ProductId;
     name: string;
@@ -15,8 +15,10 @@ export interface Notification {
     body?: string;
     severity: 'info' | 'warning' | 'error' | 'success';
     read: boolean;
+    dismissed?: boolean;
     deepLink: string;
     createdAt: string;
+    groupCount?: number;
 }
 export interface SearchResult {
     id: string;
@@ -39,7 +41,7 @@ export interface HubSession {
     tenantName: string;
     email: string;
     role: string;
-    orgRole?: 'owner' | 'admin' | 'member' | 'viewer';
+    orgRole?: 'owner' | 'admin' | 'finance' | 'member' | 'viewer';
     entitlements?: string[];
     firstName?: string;
     lastName?: string;
@@ -51,6 +53,24 @@ export interface SupportConfig {
     platformId: string;
     platformName: string;
 }
+export interface OrgBranding {
+    company_name?: string;
+    logo_url?: string;
+    logo_icon_url?: string;
+    primary_color?: string;
+    accent_color?: string;
+    colors?: {
+        header_bg?: string;
+        header_text?: string;
+    };
+    hide_powered_by?: boolean;
+}
+export interface JarvisContextOverride {
+    product?: ProductId;
+    entity_type?: string;
+    entity_id?: string;
+    additional_context?: string;
+}
 export interface HubBarProps {
     currentProduct: ProductId;
     apiBase: string;
@@ -61,4 +81,5 @@ export interface HubBarProps {
     /** @deprecated Use supportConfig instead */
     chatSlot?: React.ReactNode;
     supportConfig?: SupportConfig;
+    orgBranding?: OrgBranding;
 }

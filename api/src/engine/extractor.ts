@@ -21,6 +21,7 @@ import type {
   ExtractedFaq,
   ExtractedPricingPlan,
   ExtractedStat,
+  PageType,
 } from './types.js';
 
 /** AnyNode from cheerio's DOM — the type passed to .each() callbacks. */
@@ -1166,6 +1167,167 @@ function deduplicateByField<T extends object>(arr: T[], field: keyof T): T[] {
     seen.add(value);
     return true;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Page type detection — heuristic, no AI, fast
+// ---------------------------------------------------------------------------
+
+/**
+ * Detect the type of page based on URL path, meta tags, JSON-LD, and
+ * extracted content signals. Returns the most-likely PageType.
+ */
+export function detectPageType(html: string, url: string, extracted: ExtractedContent): PageType {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    parsedUrl = new URL('https://unknown/');
+  }
+
+  const path = parsedUrl.pathname.toLowerCase();
+  const $ = cheerio.load(html);
+
+  // ---- JSON-LD schema.org detection ----
+  $('script[type="application/ld+json"]').each((_i, el) => {
+    // we just parse them; result stored in jsonLdTypes below
+    void el;
+  });
+
+  const jsonLdTypes: string[] = [];
+  $('script[type="application/ld+json"]').each((_i, el) => {
+    try {
+      const data = JSON.parse($(el).text());
+      const items = Array.isArray(data) ? data : [data];
+      for (const item of items) {
+        const t = item['@type'];
+        if (typeof t === 'string') jsonLdTypes.push(t.toLowerCase());
+        if (Array.isArray(t)) for (const v of t) if (typeof v === 'string') jsonLdTypes.push(v.toLowerCase());
+      }
+    } catch {
+      // ignore malformed JSON-LD
+    }
+  });
+
+  const hasJsonLdType = (...types: string[]) =>
+    types.some((t) => jsonLdTypes.includes(t.toLowerCase()));
+
+  // ---- og:type meta tag ----
+  const ogType = ($('meta[property="og:type"]').attr('content') ?? '').toLowerCase();
+
+  // ---- H1 text ----
+  const h1Text = (extracted.headings.find((h) => h.level === 1)?.text ?? '').toLowerCase();
+
+  // ---- URL path signals ----
+  const isPathMatch = (...patterns: RegExp[]) => patterns.some((p) => p.test(path));
+
+  // 1. Job posting
+  if (
+    hasJsonLdType('jobposting') ||
+    isPathMatch(/\/jobs\/|\/careers\/|\/job\/|\/career\/|\/positions\/|\/openings\//) ||
+    /join our team|we'?re hiring|open position|job opening/i.test(h1Text) ||
+    /careers|jobs/i.test(path)
+  ) {
+    return 'job_posting';
+  }
+
+  // 2. Press release
+  if (
+    hasJsonLdType('pressrelease', 'newsarticle') ||
+    isPathMatch(/\/press\/|\/press-release|\/news-release/) ||
+    path.includes('/press')
+  ) {
+    // Distinguish press vs general news below — for now handle here if explicit
+    if (isPathMatch(/\/press-release|\/press\//) || hasJsonLdType('pressrelease')) {
+      return 'press_release';
+    }
+  }
+
+  // 3. News article
+  if (
+    hasJsonLdType('newsarticle', 'article') ||
+    ogType === 'article' ||
+    isPathMatch(/\/news\/|\/news$/) ||
+    path.startsWith('/news')
+  ) {
+    // Disambiguate blog vs news by path
+    if (isPathMatch(/\/news\//)) return 'news_article';
+    if (ogType === 'article' && !isPathMatch(/\/blog\//)) return 'news_article';
+  }
+
+  // 4. Blog post
+  if (
+    hasJsonLdType('blogposting', 'article') ||
+    ogType === 'article' ||
+    isPathMatch(/\/blog\/|\/posts?\/|\/articles?\/|\/insights\/|\/resources\/[^/]+$/)
+  ) {
+    return 'blog_post';
+  }
+
+  // 5. Documentation
+  if (
+    isPathMatch(/\/docs\/|\/documentation\/|\/guide\/|\/guides\/|\/reference\/|\/api-reference\/|\/manual\/|\/help\/|\/wiki\//) ||
+    (extracted.faqs.length >= 3 && extracted.tables.length >= 1) ||
+    path.startsWith('/docs') ||
+    path.startsWith('/documentation')
+  ) {
+    return 'documentation';
+  }
+
+  // 6. Pricing page
+  if (
+    hasJsonLdType('product') ||
+    isPathMatch(/\/pricing\/?$|\/plans\/?$|\/subscription\/?$/) ||
+    extracted.pricingPlans.length >= 2
+  ) {
+    return 'pricing_page';
+  }
+
+  // 7. Contact page
+  if (
+    isPathMatch(/\/contact\/?$|\/contact-us\/?$|\/get-in-touch\/?$|\/reach-us\/?$/) ||
+    path.endsWith('/contact') ||
+    (extracted.contactInfo.length >= 2 && extracted.forms.length >= 1)
+  ) {
+    return 'contact_page';
+  }
+
+  // 8. About page
+  if (
+    isPathMatch(/\/about\/?$|\/about-us\/?$|\/our-story\/?$|\/who-we-are\/?$|\/team\/?$|\/company\/?$/) ||
+    path.endsWith('/about') ||
+    path.endsWith('/about-us')
+  ) {
+    return 'about_page';
+  }
+
+  // 9. Product page
+  if (
+    hasJsonLdType('product', 'softwareapplication', 'webapplication') ||
+    isPathMatch(/\/product\/|\/products\/|\/solution\/|\/solutions\/|\/features\/|\/platform\//)
+  ) {
+    return 'product_page';
+  }
+
+  // 10. Homepage — root path or minimal path depth
+  const pathDepth = path.replace(/\/$/, '').split('/').filter(Boolean).length;
+  if (pathDepth === 0) {
+    // Root path — could be homepage or landing_page
+    if (extracted.testimonials.length >= 2 || extracted.stats.length >= 2) {
+      return 'homepage';
+    }
+    return 'homepage';
+  }
+
+  // 11. Landing page — short paths with conversion signals
+  if (
+    pathDepth <= 2 &&
+    (extracted.testimonials.length >= 1 || extracted.pricingPlans.length >= 1 || extracted.stats.length >= 2)
+  ) {
+    return 'landing_page';
+  }
+
+  return 'unknown';
 }
 
 // ---------------------------------------------------------------------------

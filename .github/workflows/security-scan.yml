@@ -82,7 +82,7 @@ jobs:
 
           echo "Posting $(echo "$PAYLOAD" | jq '.findings | length') SAST findings..."
           curl -s -o /dev/null -w "HTTP %{http_code}" \
-            -X POST "https://ops-center-api.azurewebsites.net/api/webhook/appsec" \
+            -X POST "https://api.theoneops.app/api/webhook/appsec" \
             -H "Content-Type: application/json" \
             -H "x-api-key: ${{ secrets.APPSEC_WEBHOOK_KEY }}" \
             -d "$PAYLOAD" --max-time 30
@@ -141,7 +141,7 @@ jobs:
 
           echo "Posting $(echo "$PAYLOAD" | jq '.findings | length') SCA findings..."
           curl -s -o /dev/null -w "HTTP %{http_code}" \
-            -X POST "https://ops-center-api.azurewebsites.net/api/webhook/appsec" \
+            -X POST "https://api.theoneops.app/api/webhook/appsec" \
             -H "Content-Type: application/json" \
             -H "x-api-key: ${{ secrets.APPSEC_WEBHOOK_KEY }}" \
             -d "$PAYLOAD" --max-time 30

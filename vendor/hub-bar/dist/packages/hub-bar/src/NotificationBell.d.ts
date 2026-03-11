@@ -7,7 +7,11 @@ interface NotificationBellProps {
     onClose: () => void;
     onMarkAllRead: () => void;
     onMarkRead: (id: string) => void;
+    onDismiss: (id: string) => void;
+    muted: boolean;
+    onMute: (ms: number) => void;
+    onUnmute: () => void;
     hubUrl: string;
 }
-export declare function NotificationBell({ notifications, unreadCount, open, onToggle, onClose, onMarkAllRead, onMarkRead, hubUrl, }: NotificationBellProps): import("react/jsx-runtime").JSX.Element;
+export declare function NotificationBell({ notifications, unreadCount, open, onToggle, onClose, onMarkAllRead, onMarkRead, onDismiss, muted, onMute, onUnmute, hubUrl, }: NotificationBellProps): import("react/jsx-runtime").JSX.Element;
 export {};
