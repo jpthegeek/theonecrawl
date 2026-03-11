@@ -130,7 +130,7 @@ export declare interface Product {
     color: string;
 }
 
-export declare type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission' | 'migrate' | 'brand' | 'relay' | 'code';
+export declare type ProductId = 'psa' | 'rmm' | 'crm' | 'security' | 'backups' | 'projects' | 'books' | 'voice' | 'ai-studio' | 'livekit' | 'chms' | 'ams' | 'fleet' | 'people' | 'cmdb' | 'oncall' | 'visitor' | 'legal' | 'collective' | 'crawl' | 'hub' | 'ops-center' | 'portal' | 'bridge' | 'canvas' | 'mission' | 'migrate' | 'brand' | 'relay' | 'code' | 'ai' | 'status' | 'defend' | 'agents' | 'protect';
 
 export declare function ProductSwitcher({ currentProduct, products, open, onToggle, onClose, hubUrl, }: ProductSwitcherProps): JSX.Element;
 
