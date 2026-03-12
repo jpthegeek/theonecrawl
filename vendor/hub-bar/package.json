@@ -17,10 +17,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build && tsc --emitDeclarationOnly --outDir dist",
-    "dev": "vite build --watch",
-    "typecheck": "tsc --noEmit",
-    "demo": "vite --config vite.demo.config.ts"
+    "build": "echo 'pre-built'",
+    "dev": "echo 'pre-built'",
+    "typecheck": "echo 'pre-built'"
   },
   "peerDependencies": {
     "react": ">=18.0.0",

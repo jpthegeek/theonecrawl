@@ -39,5 +39,10 @@ export declare const Globe: ({ size, className, color }: IconProps) => import("r
 export declare const LayoutGrid: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const Activity: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const FolderSync: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const Ticket: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const UserPlus: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const Handshake: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const ShieldAlert: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
+export declare const Receipt: ({ size, className, color }: IconProps) => import("react/jsx-runtime").JSX.Element;
 export declare const PRODUCT_ICONS: Record<string, (props: IconProps) => React.JSX.Element>;
 export {};

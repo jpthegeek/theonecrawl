@@ -7,7 +7,7 @@ export declare const HUB_BAR_HEIGHT = 48;
 
 export declare const HUB_URL = "https://my.theonestack.com";
 
-export declare function HubBar({ currentProduct, apiBase, signalrEndpoint, session: sessionOverride, onLogout, hubUrl, chatSlot, supportConfig, orgBranding, }: HubBarProps): JSX.Element | null;
+export declare function HubBar({ currentProduct, apiBase, signalrEndpoint, session: sessionOverride, onLogout, hubUrl, chatSlot, supportConfig, orgBranding, }: HubBarProps): JSX.Element;
 
 export declare interface HubBarProps {
     currentProduct: ProductId;
@@ -171,7 +171,7 @@ export declare const SEVERITY_COLORS: {
     readonly error: "#f87171";
 };
 
-export declare function SupportButton({ config, user }: SupportPanelProps): JSX.Element;
+export declare function SupportButton({ config, user, currentProduct }: SupportPanelProps): JSX.Element;
 
 export declare interface SupportConfig {
     apiBaseUrl: string;
@@ -186,6 +186,7 @@ declare interface SupportPanelProps {
         email: string;
         name: string;
     };
+    currentProduct?: ProductId;
 }
 
 declare interface ToolCallResult {
